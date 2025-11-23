@@ -26,20 +26,26 @@ export const VoiceGuidance = ({
     window.speechSynthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.8;
-    utterance.pitch = 0.9;
-    utterance.volume = 1;
+    utterance.rate = 0.7; // Slower, more calming
+    utterance.pitch = 0.85; // Slightly lower, warmer
+    utterance.volume = 0.9; // Slightly softer
     
-    // Try to select a female voice
+    // Try to select the best quality female voice
     const voices = window.speechSynthesis.getVoices();
-    const femaleVoice = voices.find(voice => 
-      voice.name.toLowerCase().includes('female') || 
+    const preferredVoice = voices.find(voice => 
+      // Prefer high-quality voices with natural-sounding names
+      voice.name.toLowerCase().includes('google') && voice.name.toLowerCase().includes('female') ||
       voice.name.toLowerCase().includes('samantha') ||
-      voice.name.toLowerCase().includes('zira')
+      voice.name.toLowerCase().includes('karen') ||
+      voice.name.toLowerCase().includes('victoria') ||
+      voice.name.toLowerCase().includes('zira') ||
+      voice.name.toLowerCase().includes('microsoft') && voice.name.toLowerCase().includes('female')
+    ) || voices.find(voice => 
+      voice.name.toLowerCase().includes('female')
     );
     
-    if (femaleVoice) {
-      utterance.voice = femaleVoice;
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
     }
     
     window.speechSynthesis.speak(utterance);
@@ -61,12 +67,13 @@ export const VoiceGuidance = ({
       }
     }
     
-    // Count during first 3 cycles
+    // Count UP during first 3 cycles (1, 2, 3, 4)
     if (cycleCount <= 3 && countdown > 0 && countdown <= 4) {
-      const countKey = `${phase}-${cycleCount}-${countdown}`;
+      const countUpValue = 5 - countdown; // Convert countdown to count up: 4->1, 3->2, 2->3, 1->4
+      const countKey = `${phase}-${cycleCount}-${countUpValue}`;
       if (lastSpokenRef.current !== countKey) {
         lastSpokenRef.current = countKey;
-        setTimeout(() => speak(countdown.toString()), 500);
+        setTimeout(() => speak(countUpValue.toString()), 500);
       }
     }
   }, [phase, cycleCount, isActive, isMuted, countdown]);

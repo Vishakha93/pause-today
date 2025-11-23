@@ -91,4 +91,13 @@ All colors MUST be HSL.
   .breathing-circle-hold-empty {
     transform: scale(0.7);
   }
+  
+  @keyframes wave {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-10px) scale(1.05);
+    }
+  }
 }
