@@ -5,9 +5,10 @@ type BreathingPhase = "inhale" | "hold" | "exhale" | "hold-empty";
 interface BreathingCircleProps {
   phase: BreathingPhase;
   isActive: boolean;
+  onToggle: () => void;
 }
 
-export const BreathingCircle = ({ phase, isActive }: BreathingCircleProps) => {
+export const BreathingCircle = ({ phase, isActive, onToggle }: BreathingCircleProps) => {
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
@@ -55,27 +56,58 @@ export const BreathingCircle = ({ phase, isActive }: BreathingCircleProps) => {
         {isActive ? getPhaseText() : "Ready to Begin"}
       </h2>
       
-      <div className="relative flex items-center justify-center w-full max-w-[280px] md:max-w-[320px] aspect-square">
-        {/* Outer glow ring */}
+      <div 
+        className="relative flex items-center justify-center w-full max-w-[280px] md:max-w-[320px] aspect-square cursor-pointer group"
+        onClick={onToggle}
+      >
+        {/* Wave ripples */}
         <div 
-          className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-2xl"
+          className="absolute inset-0 rounded-full"
           style={{
-            transform: `scale(${scale * 1.2})`,
+            background: 'radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, hsl(var(--secondary) / 0.2) 50%, transparent 70%)',
+            transform: `scale(${scale * 1.3})`,
             transition: 'transform 4s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: isActive ? 1 : 0.5,
+          }}
+        />
+        <div 
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, hsl(var(--secondary) / 0.2) 0%, transparent 60%)',
+            transform: `scale(${scale * 1.15})`,
+            transition: 'transform 4s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: isActive ? 0.8 : 0.4,
+            transitionDelay: '0.3s',
           }}
         />
         
-        {/* Main breathing circle */}
+        {/* Main breathing circle with wave effect */}
         <div 
-          className="relative w-full h-full rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center"
+          className="relative w-full h-full rounded-full flex items-center justify-center overflow-hidden"
           style={{
+            background: 'linear-gradient(135deg, hsl(var(--primary) / 0.6), hsl(var(--secondary) / 0.6))',
             transform: `scale(${scale})`,
             transition: 'transform 4s cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: '0 0 40px hsl(var(--primary) / 0.5), 0 0 60px hsl(var(--secondary) / 0.3)',
+            boxShadow: '0 0 40px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--secondary) / 0.25), inset 0 0 30px hsl(var(--primary) / 0.2)',
           }}
         >
+          {/* Wave effect overlay */}
+          <div 
+            className="absolute inset-0 opacity-50"
+            style={{
+              background: 'radial-gradient(ellipse at center, transparent 30%, hsl(var(--primary) / 0.3) 60%, transparent 90%)',
+              animation: isActive ? 'wave 4s ease-in-out infinite' : 'none',
+            }}
+          />
+          
           {/* Inner circle */}
-          <div className="w-[85%] h-[85%] rounded-full bg-background/10 backdrop-blur-sm" />
+          <div className="relative w-[85%] h-[85%] rounded-full bg-background/5 backdrop-blur-sm border border-foreground/5 flex items-center justify-center">
+            {!isActive && (
+              <span className="text-sm text-foreground/60 group-hover:text-foreground/80 transition-colors">
+                Tap to begin
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

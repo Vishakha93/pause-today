@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { BreathingCircle } from "@/components/BreathingCircle";
 import { VoiceGuidance } from "@/components/VoiceGuidance";
+import { CompletionDialog } from "@/components/CompletionDialog";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX, Play, Square } from "lucide-react";
 
@@ -12,6 +13,7 @@ const Index = () => {
   const [cycleCount, setCycleCount] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [countdown, setCountdown] = useState(4);
+  const [showCompletion, setShowCompletion] = useState(false);
 
   useEffect(() => {
     if (!isActive) {
@@ -65,8 +67,11 @@ const Index = () => {
 
   const handleStartStop = () => {
     if (isActive) {
+      // Show completion dialog if user completed at least one cycle
+      if (cycleCount > 0) {
+        setShowCompletion(true);
+      }
       setIsActive(false);
-      setCycleCount(0);
       window.speechSynthesis.cancel();
     } else {
       setIsActive(true);
@@ -74,6 +79,13 @@ const Index = () => {
       setCountdown(4);
       setCycleCount(1);
     }
+  };
+
+  const handleCompletionClose = () => {
+    setShowCompletion(false);
+    setCycleCount(0);
+    setPhase("inhale");
+    setCountdown(4);
   };
 
   const toggleMute = () => {
@@ -101,7 +113,7 @@ const Index = () => {
         </div>
 
         {/* Breathing Circle */}
-        <BreathingCircle phase={phase} isActive={isActive} />
+        <BreathingCircle phase={phase} isActive={isActive} onToggle={handleStartStop} />
 
         {/* Voice Guidance */}
         <VoiceGuidance 
@@ -154,6 +166,13 @@ const Index = () => {
             <Volume2 className="h-5 w-5 text-foreground" />
           )}
         </button>
+
+        {/* Completion Dialog */}
+        <CompletionDialog 
+          open={showCompletion}
+          onClose={handleCompletionClose}
+          cycleCount={cycleCount}
+        />
       </div>
     </div>
   );
