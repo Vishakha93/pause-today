@@ -127,6 +127,27 @@ export const useAudioManager = () => {
     });
   }, [initAudioContext]);
 
+  const playAudioNonBlocking = useCallback((audioKey: keyof AudioFiles) => {
+    initAudioContext();
+    const audio = audioFilesRef.current?.[audioKey];
+
+    if (!audio) {
+      console.warn(`Audio ${audioKey} not loaded`);
+      return;
+    }
+
+    // Fire-and-forget playback: allow overlapping clips (e.g. cues + phase audio)
+    audio.currentTime = 0;
+    audio
+      .play()
+      .then(() => {
+        console.log(`Playing (non-blocking) ${audioKey}`);
+      })
+      .catch((err) => {
+        console.error("Audio play error (non-blocking):", err);
+      });
+  }, [initAudioContext]);
+
   const stopAllAudio = useCallback(() => {
     if (audioFilesRef.current) {
       Object.values(audioFilesRef.current).forEach((audio) => {
@@ -149,6 +170,7 @@ export const useAudioManager = () => {
     isLoading,
     loadError,
     playAudio,
+    playAudioNonBlocking,
     stopAllAudio,
     initAudioContext,
   };
