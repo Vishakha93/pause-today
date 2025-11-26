@@ -70,7 +70,6 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
             transform: `scale(${displayScale * 1.15})`,
             transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1)`,
             opacity: isActive ? 0.8 : 0.4,
-            transitionDelay: '0.1s',
           }}
         />
         

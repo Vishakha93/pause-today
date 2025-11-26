@@ -19,174 +19,206 @@ const Index = () => {
   const [hasPlayedWelcome, setHasPlayedWelcome] = useState(false);
   const [scale, setScale] = useState(0.5);
   
-  const timersRef = useRef<NodeJS.Timeout[]>([]);
   const isActiveRef = useRef(false);
 
-  const clearAllTimers = () => {
-    timersRef.current.forEach(timer => clearTimeout(timer));
-    timersRef.current = [];
-  };
-
-  const scheduleAudio = (audioKey: Parameters<typeof playAudio>[0], delay: number) => {
-    if (isMuted) return;
-    const timer = setTimeout(() => {
-      playAudio(audioKey);
-    }, delay);
-    timersRef.current.push(timer);
-  };
-
-  const scheduleCount = (count: number, delay: number) => {
-    const timer = setTimeout(() => {
-      setCurrentCount(count);
-      const clearTimer = setTimeout(() => setCurrentCount(0), 800);
-      timersRef.current.push(clearTimer);
-    }, delay);
-    timersRef.current.push(timer);
-  };
-
-  const runBreathingCycle = (cycleNumber: number) => {
-    if (!isActiveRef.current) return;
-
-    const withCounting = cycleNumber <= 3;
-    const baseDelay = 0;
-
-    // INHALE phase (4 seconds)
-    setPhase("inhale");
-    setScale(1.0);
-    scheduleAudio("breatheIn", baseDelay);
-    if (withCounting) {
-      scheduleAudio("one", baseDelay + 1000);
-      scheduleCount(1, baseDelay + 1000);
-      scheduleAudio("two", baseDelay + 2000);
-      scheduleCount(2, baseDelay + 2000);
-      scheduleAudio("three", baseDelay + 3000);
-      scheduleCount(3, baseDelay + 3000);
-      scheduleAudio("four", baseDelay + 4000);
-      scheduleCount(4, baseDelay + 4000);
-    }
-
-    // HOLD FULL phase (4 seconds)
-    const holdFullDelay = baseDelay + 4000;
-    const holdFullTimer = setTimeout(() => {
-      if (!isActiveRef.current) return;
-      setPhase("hold-full");
-      scheduleAudio("holdYourBreath", 0);
-      if (withCounting) {
-        scheduleAudio("one", 1000);
-        scheduleCount(1, 1000);
-        scheduleAudio("two", 2000);
-        scheduleCount(2, 2000);
-        scheduleAudio("three", 3000);
-        scheduleCount(3, 3000);
-        scheduleAudio("four", 4000);
-        scheduleCount(4, 4000);
-      }
-    }, holdFullDelay);
-    timersRef.current.push(holdFullTimer);
-
-    // EXHALE phase (4 seconds)
-    const exhaleDelay = holdFullDelay + 4000;
-    const exhaleTimer = setTimeout(() => {
-      if (!isActiveRef.current) return;
-      setPhase("exhale");
-      setScale(0.3);
-      scheduleAudio("breatheOut", 0);
-      if (withCounting) {
-        scheduleAudio("one", 1000);
-        scheduleCount(1, 1000);
-        scheduleAudio("two", 2000);
-        scheduleCount(2, 2000);
-        scheduleAudio("three", 3000);
-        scheduleCount(3, 3000);
-        scheduleAudio("four", 4000);
-        scheduleCount(4, 4000);
-      }
-    }, exhaleDelay);
-    timersRef.current.push(exhaleTimer);
-
-    // HOLD EMPTY phase (4 seconds)
-    const holdEmptyDelay = exhaleDelay + 4000;
-    const holdEmptyTimer = setTimeout(() => {
-      if (!isActiveRef.current) return;
-      setPhase("hold-empty");
-      scheduleAudio("hold", 0);
-      if (withCounting) {
-        scheduleAudio("one", 1000);
-        scheduleCount(1, 1000);
-        scheduleAudio("two", 2000);
-        scheduleCount(2, 2000);
-        scheduleAudio("three", 3000);
-        scheduleCount(3, 3000);
-        scheduleAudio("four", 4000);
-        scheduleCount(4, 4000);
-      }
-    }, holdEmptyDelay);
-    timersRef.current.push(holdEmptyTimer);
-
-    // Next cycle
-    const nextCycleDelay = holdEmptyDelay + 4000;
-    const nextCycleTimer = setTimeout(() => {
-      if (!isActiveRef.current) return;
-      setCycleCount(prev => prev + 1);
-      runBreathingCycle(cycleNumber + 1);
-    }, nextCycleDelay);
-    timersRef.current.push(nextCycleTimer);
-  };
-
-  const handleStart = () => {
-    if (isLoading || loadError) return;
-    
-    initAudioContext();
-    isActiveRef.current = true;
-    
-    if (!hasPlayedWelcome) {
-      // Stage 1: Welcome
-      setStage("welcome");
-      setPhase("welcome");
-      setScale(0.6);
-      if (!isMuted) playAudio("welcomeMessage");
-      
-      // Stage 2: Box Breathing Intro (first cycle)
-      const introTimer = setTimeout(() => {
-        if (!isActiveRef.current) return;
-        setStage("intro");
-        setPhase("intro");
-        setScale(0.5);
-        if (!isMuted) playAudio("boxBreathingIntro");
-        
-        // Start normal breathing cycles after intro (intro is cycle 1)
-        const breathingTimer = setTimeout(() => {
-          if (!isActiveRef.current) return;
-          setStage("breathing");
-          setCycleCount(1);
-          setHasPlayedWelcome(true);
-          runBreathingCycle(2); // Start with cycle 2 (with counting)
-        }, 90000); // Adjust based on BoxBreathingIntro.mp3 duration
-        timersRef.current.push(breathingTimer);
-      }, 8000); // Adjust based on WelcomeMessage.mp3 duration
-      timersRef.current.push(introTimer);
-    } else {
-      // Skip welcome, go straight to breathing with counting
-      setStage("breathing");
-      setCycleCount(1);
-      setScale(0.3);
-      runBreathingCycle(1);
-    }
-  };
+  const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
   const handleStop = () => {
+    console.log('Stopping session');
     isActiveRef.current = false;
-    clearAllTimers();
     stopAllAudio();
-    
+
     if (cycleCount > 0) {
       setShowCompletion(true);
     }
-    
+
     setStage("idle");
     setPhase("inhale");
     setScale(0.5);
     setCurrentCount(0);
+  };
+
+  async function playCount(key: "one" | "two" | "three" | "four", value: number) {
+    if (!isActiveRef.current) return;
+    await sleep(1000);
+    if (!isActiveRef.current) return;
+    setCurrentCount(value);
+    console.log(`Playing count ${value}`);
+    await playAudio(key);
+    setCurrentCount(0);
+  }
+
+  async function runGuidedCycle(cycleNumber: number) {
+    if (!isActiveRef.current) return;
+    console.log(`Starting cycle ${cycleNumber} with counting`);
+
+    // INHALE
+    setPhase("inhale");
+    setScale(1.0);
+    await playAudio("breatheIn");
+    if (!isActiveRef.current) return;
+    await playCount("one", 1);
+    await playCount("two", 2);
+    await playCount("three", 3);
+    await playCount("four", 4);
+
+    if (!isActiveRef.current) return;
+
+    // HOLD FULL
+    setPhase("hold-full");
+    await playAudio("holdYourBreath");
+    if (!isActiveRef.current) return;
+    await playCount("one", 1);
+    await playCount("two", 2);
+    await playCount("three", 3);
+    await playCount("four", 4);
+
+    if (!isActiveRef.current) return;
+
+    // EXHALE
+    setPhase("exhale");
+    setScale(0.3);
+    await playAudio("breatheOut");
+    if (!isActiveRef.current) return;
+    await playCount("one", 1);
+    await playCount("two", 2);
+    await playCount("three", 3);
+    await playCount("four", 4);
+
+    if (!isActiveRef.current) return;
+
+    // HOLD EMPTY
+    setPhase("hold-empty");
+    await playAudio("hold");
+    if (!isActiveRef.current) return;
+    await playCount("one", 1);
+    await playCount("two", 2);
+    await playCount("three", 3);
+    await playCount("four", 4);
+
+    if (!isActiveRef.current) return;
+
+    setCycleCount(cycleNumber);
+    console.log(`Completed cycle ${cycleNumber}`);
+    await sleep(500);
+  }
+
+  async function runUnguidedCycle(cycleNumber: number) {
+    if (!isActiveRef.current) return;
+    console.log(`Starting cycle ${cycleNumber} without counting`);
+
+    // INHALE
+    setPhase("inhale");
+    setScale(1.0);
+    await playAudio("breatheIn");
+    if (!isActiveRef.current) return;
+    await sleep(4000);
+
+    if (!isActiveRef.current) return;
+
+    // HOLD FULL
+    setPhase("hold-full");
+    await playAudio("holdYourBreath");
+    if (!isActiveRef.current) return;
+    await sleep(4000);
+
+    if (!isActiveRef.current) return;
+
+    // EXHALE
+    setPhase("exhale");
+    setScale(0.3);
+    await playAudio("breatheOut");
+    if (!isActiveRef.current) return;
+    await sleep(4000);
+
+    if (!isActiveRef.current) return;
+
+    // HOLD EMPTY
+    setPhase("hold-empty");
+    await playAudio("hold");
+    if (!isActiveRef.current) return;
+    await sleep(4000);
+
+    if (!isActiveRef.current) return;
+
+    setCycleCount(cycleNumber);
+    console.log(`Completed cycle ${cycleNumber}`);
+    await sleep(500);
+  }
+
+  async function runBreathingSession(startWithWelcome: boolean) {
+    if (!isActiveRef.current) return;
+
+    if (startWithWelcome && !hasPlayedWelcome) {
+      console.log('Playing WelcomeMessage');
+      setStage("welcome");
+      setPhase("welcome");
+      setScale(0.6);
+      await playAudio("welcomeMessage");
+      if (!isActiveRef.current) return;
+      console.log('WelcomeMessage finished');
+      await sleep(1000);
+
+      console.log('Playing BoxBreathingIntro');
+      setStage("intro");
+      setPhase("intro");
+      setScale(0.5);
+      await playAudio("boxBreathingIntro");
+      if (!isActiveRef.current) return;
+      console.log('BoxBreathingIntro finished');
+      await sleep(2000);
+
+      setHasPlayedWelcome(true);
+      setStage("breathing");
+      setCycleCount(1); // Intro contains first cycle
+
+      // Cycles 2 and 3 with counting
+      await runGuidedCycle(2);
+      if (!isActiveRef.current) return;
+      await runGuidedCycle(3);
+      if (!isActiveRef.current) return;
+
+      // Cycles 4+ without counting
+      let cycle = 4;
+      while (isActiveRef.current) {
+        await runUnguidedCycle(cycle);
+        if (!isActiveRef.current) return;
+        cycle += 1;
+      }
+    } else {
+      setStage("breathing");
+      setScale(0.3);
+      let cycle = 1;
+
+      // First two cycles with counting
+      await runGuidedCycle(cycle);
+      if (!isActiveRef.current) return;
+      cycle += 1;
+      await runGuidedCycle(cycle);
+      if (!isActiveRef.current) return;
+      cycle += 1;
+
+      // Remaining cycles without counting
+      while (isActiveRef.current) {
+        await runUnguidedCycle(cycle);
+        if (!isActiveRef.current) return;
+        cycle += 1;
+      }
+    }
+  }
+
+  const handleStart = () => {
+    if (isLoading || loadError) return;
+
+    console.log('Starting session');
+    initAudioContext();
+    isActiveRef.current = true;
+
+    if (!hasPlayedWelcome) {
+      runBreathingSession(true);
+    } else {
+      runBreathingSession(false);
+    }
   };
 
   const handleCompletionClose = () => {
@@ -211,7 +243,7 @@ const Index = () => {
 
   useEffect(() => {
     return () => {
-      clearAllTimers();
+      isActiveRef.current = false;
       stopAllAudio();
     };
   }, []);
