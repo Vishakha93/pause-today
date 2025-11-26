@@ -66,104 +66,88 @@ const Index = () => {
     if (!isActiveRef.current) return;
     console.log(`Starting cycle ${cycleNumber} with counting`);
 
-    // INHALE (counts staggered to avoid overlap with instruction)
+    // INHALE
     setPhase("inhale");
     setScale(1.0);
     if (!isMuted) {
       playAudioNonBlocking("breatheIn");
       scheduleTimeout(() => {
-        setCurrentCount(1);
-        playAudioNonBlocking("one");
-      }, 800);
-      scheduleTimeout(() => {
         setCurrentCount(2);
         playAudioNonBlocking("two");
-      }, 1600);
+      }, 1000);
       scheduleTimeout(() => {
         setCurrentCount(3);
         playAudioNonBlocking("three");
-      }, 2400);
+      }, 2000);
       scheduleTimeout(() => {
         setCurrentCount(4);
         playAudioNonBlocking("four");
-      }, 3200);
-      scheduleTimeout(() => setCurrentCount(0), 3300);
+      }, 3000);
+      scheduleTimeout(() => setCurrentCount(0), 3100);
     }
     await sleep(4000);
     if (!isActiveRef.current) return;
 
-    // HOLD FULL (counts staggered for longer instruction)
+    // HOLD FULL
     setPhase("hold-full");
     if (!isMuted) {
       playAudioNonBlocking("holdYourBreath");
       scheduleTimeout(() => {
-        setCurrentCount(1);
-        playAudioNonBlocking("one");
-      }, 1200);
-      scheduleTimeout(() => {
         setCurrentCount(2);
         playAudioNonBlocking("two");
-      }, 2100);
+      }, 1000);
       scheduleTimeout(() => {
         setCurrentCount(3);
         playAudioNonBlocking("three");
-      }, 3000);
+      }, 2000);
       scheduleTimeout(() => {
         setCurrentCount(4);
         playAudioNonBlocking("four");
-      }, 3900);
-      scheduleTimeout(() => setCurrentCount(0), 4000);
+      }, 3000);
+      scheduleTimeout(() => setCurrentCount(0), 3100);
     }
     await sleep(4000);
     if (!isActiveRef.current) return;
 
-    // EXHALE (counts staggered to avoid overlap)
+    // EXHALE
     setPhase("exhale");
     setScale(0.3);
     if (!isMuted) {
       playAudioNonBlocking("breatheOut");
       scheduleTimeout(() => {
-        setCurrentCount(1);
-        playAudioNonBlocking("one");
-      }, 900);
-      scheduleTimeout(() => {
         setCurrentCount(2);
         playAudioNonBlocking("two");
-      }, 1800);
+      }, 1000);
       scheduleTimeout(() => {
         setCurrentCount(3);
         playAudioNonBlocking("three");
-      }, 2700);
+      }, 2000);
       scheduleTimeout(() => {
         setCurrentCount(4);
         playAudioNonBlocking("four");
-      }, 3600);
-      scheduleTimeout(() => setCurrentCount(0), 3700);
+      }, 3000);
+      scheduleTimeout(() => setCurrentCount(0), 3100);
     }
     await sleep(4000);
     if (!isActiveRef.current) return;
 
-    // HOLD EMPTY (counts staggered)
+    // HOLD EMPTY
     setPhase("hold-empty");
     if (!isMuted) {
       playAudioNonBlocking("hold");
       scheduleTimeout(() => {
-        setCurrentCount(1);
-        playAudioNonBlocking("one");
-      }, 600);
-      scheduleTimeout(() => {
         setCurrentCount(2);
         playAudioNonBlocking("two");
-      }, 1500);
+      }, 1000);
       scheduleTimeout(() => {
         setCurrentCount(3);
         playAudioNonBlocking("three");
-      }, 2400);
+      }, 2000);
       scheduleTimeout(() => {
         setCurrentCount(4);
         playAudioNonBlocking("four");
-      }, 3300);
-      scheduleTimeout(() => setCurrentCount(0), 3400);
+      }, 3000);
+      scheduleTimeout(() => setCurrentCount(0), 3100);
     }
     await sleep(4000);
     if (!isActiveRef.current) return;
