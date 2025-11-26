@@ -9,7 +9,7 @@ type BreathingPhase = "welcome" | "intro" | "inhale" | "hold-full" | "exhale" | 
 type Stage = "idle" | "welcome" | "intro" | "breathing";
 
 const Index = () => {
-  const { isLoading, loadError, playAudio, stopAllAudio, initAudioContext } = useAudioManager();
+  const { isLoading, loadError, playAudio, playAudioNonBlocking, stopAllAudio, initAudioContext } = useAudioManager();
   const [stage, setStage] = useState<Stage>("idle");
   const [phase, setPhase] = useState<BreathingPhase>("inhale");
   const [cycleCount, setCycleCount] = useState(0);
@@ -20,12 +20,26 @@ const Index = () => {
   const [scale, setScale] = useState(0.5);
   
   const isActiveRef = useRef(false);
-
+  const timeoutsRef = useRef<number[]>([]);
   const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+  const scheduleTimeout = (callback: () => void, delay: number) => {
+    const id = window.setTimeout(() => {
+      if (!isActiveRef.current) return;
+      callback();
+    }, delay);
+    timeoutsRef.current.push(id);
+  };
+
+  const clearAllTimeouts = () => {
+    timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+    timeoutsRef.current = [];
+  };
 
   const handleStop = () => {
     console.log('Stopping session');
     isActiveRef.current = false;
+    clearAllTimeouts();
     stopAllAudio();
 
     if (cycleCount > 0) {
@@ -55,47 +69,103 @@ const Index = () => {
     // INHALE
     setPhase("inhale");
     setScale(1.0);
-    await playAudio("breatheIn");
-    if (!isActiveRef.current) return;
-    await playCount("one", 1);
-    await playCount("two", 2);
-    await playCount("three", 3);
-    await playCount("four", 4);
-
+    if (!isMuted) {
+      playAudioNonBlocking("breatheIn");
+      scheduleTimeout(() => {
+        setCurrentCount(1);
+        playAudioNonBlocking("one");
+      }, 1000);
+      scheduleTimeout(() => {
+        setCurrentCount(2);
+        playAudioNonBlocking("two");
+      }, 2000);
+      scheduleTimeout(() => {
+        setCurrentCount(3);
+        playAudioNonBlocking("three");
+      }, 3000);
+      scheduleTimeout(() => {
+        setCurrentCount(4);
+        playAudioNonBlocking("four");
+      }, 4000);
+      scheduleTimeout(() => setCurrentCount(0), 4100);
+    }
+    await sleep(4000);
     if (!isActiveRef.current) return;
 
     // HOLD FULL
     setPhase("hold-full");
-    await playAudio("holdYourBreath");
-    if (!isActiveRef.current) return;
-    await playCount("one", 1);
-    await playCount("two", 2);
-    await playCount("three", 3);
-    await playCount("four", 4);
-
+    if (!isMuted) {
+      playAudioNonBlocking("holdYourBreath");
+      scheduleTimeout(() => {
+        setCurrentCount(1);
+        playAudioNonBlocking("one");
+      }, 1000);
+      scheduleTimeout(() => {
+        setCurrentCount(2);
+        playAudioNonBlocking("two");
+      }, 2000);
+      scheduleTimeout(() => {
+        setCurrentCount(3);
+        playAudioNonBlocking("three");
+      }, 3000);
+      scheduleTimeout(() => {
+        setCurrentCount(4);
+        playAudioNonBlocking("four");
+      }, 4000);
+      scheduleTimeout(() => setCurrentCount(0), 4100);
+    }
+    await sleep(4000);
     if (!isActiveRef.current) return;
 
     // EXHALE
     setPhase("exhale");
     setScale(0.3);
-    await playAudio("breatheOut");
-    if (!isActiveRef.current) return;
-    await playCount("one", 1);
-    await playCount("two", 2);
-    await playCount("three", 3);
-    await playCount("four", 4);
-
+    if (!isMuted) {
+      playAudioNonBlocking("breatheOut");
+      scheduleTimeout(() => {
+        setCurrentCount(1);
+        playAudioNonBlocking("one");
+      }, 1000);
+      scheduleTimeout(() => {
+        setCurrentCount(2);
+        playAudioNonBlocking("two");
+      }, 2000);
+      scheduleTimeout(() => {
+        setCurrentCount(3);
+        playAudioNonBlocking("three");
+      }, 3000);
+      scheduleTimeout(() => {
+        setCurrentCount(4);
+        playAudioNonBlocking("four");
+      }, 4000);
+      scheduleTimeout(() => setCurrentCount(0), 4100);
+    }
+    await sleep(4000);
     if (!isActiveRef.current) return;
 
     // HOLD EMPTY
     setPhase("hold-empty");
-    await playAudio("hold");
-    if (!isActiveRef.current) return;
-    await playCount("one", 1);
-    await playCount("two", 2);
-    await playCount("three", 3);
-    await playCount("four", 4);
-
+    if (!isMuted) {
+      playAudioNonBlocking("hold");
+      scheduleTimeout(() => {
+        setCurrentCount(1);
+        playAudioNonBlocking("one");
+      }, 1000);
+      scheduleTimeout(() => {
+        setCurrentCount(2);
+        playAudioNonBlocking("two");
+      }, 2000);
+      scheduleTimeout(() => {
+        setCurrentCount(3);
+        playAudioNonBlocking("three");
+      }, 3000);
+      scheduleTimeout(() => {
+        setCurrentCount(4);
+        playAudioNonBlocking("four");
+      }, 4000);
+      scheduleTimeout(() => setCurrentCount(0), 4100);
+    }
+    await sleep(4000);
     if (!isActiveRef.current) return;
 
     setCycleCount(cycleNumber);
@@ -110,35 +180,35 @@ const Index = () => {
     // INHALE
     setPhase("inhale");
     setScale(1.0);
-    await playAudio("breatheIn");
-    if (!isActiveRef.current) return;
+    if (!isMuted) {
+      playAudioNonBlocking("breatheIn");
+    }
     await sleep(4000);
-
     if (!isActiveRef.current) return;
 
     // HOLD FULL
     setPhase("hold-full");
-    await playAudio("holdYourBreath");
-    if (!isActiveRef.current) return;
+    if (!isMuted) {
+      playAudioNonBlocking("holdYourBreath");
+    }
     await sleep(4000);
-
     if (!isActiveRef.current) return;
 
     // EXHALE
     setPhase("exhale");
     setScale(0.3);
-    await playAudio("breatheOut");
-    if (!isActiveRef.current) return;
+    if (!isMuted) {
+      playAudioNonBlocking("breatheOut");
+    }
     await sleep(4000);
-
     if (!isActiveRef.current) return;
 
     // HOLD EMPTY
     setPhase("hold-empty");
-    await playAudio("hold");
-    if (!isActiveRef.current) return;
+    if (!isMuted) {
+      playAudioNonBlocking("hold");
+    }
     await sleep(4000);
-
     if (!isActiveRef.current) return;
 
     setCycleCount(cycleNumber);
@@ -244,6 +314,7 @@ const Index = () => {
   useEffect(() => {
     return () => {
       isActiveRef.current = false;
+      clearAllTimeouts();
       stopAllAudio();
     };
   }, []);
