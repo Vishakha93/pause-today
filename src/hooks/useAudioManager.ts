@@ -18,7 +18,8 @@ export const useAudioManager = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const audioFilesRef = useRef<AudioFiles | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-
+  const pendingResolversRef = useRef<Set<() => void>>(new Set());
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const initAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -78,22 +79,70 @@ export const useAudioManager = () => {
     };
   }, []);
 
-  const playAudio = useCallback((audioKey: keyof AudioFiles) => {
+  const playAudio = useCallback(async (audioKey: keyof AudioFiles) => {
     initAudioContext();
     const audio = audioFilesRef.current?.[audioKey];
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(err => console.error('Audio play error:', err));
+
+    if (!audio) {
+      console.warn(`Audio ${audioKey} not loaded`);
+      return;
     }
+
+    // Ensure no overlapping audio
+    if (currentAudioRef.current && !currentAudioRef.current.paused) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
+    }
+
+    currentAudioRef.current = audio;
+    audio.currentTime = 0;
+
+    return new Promise<void>((resolve) => {
+      let resolved = false;
+
+      const done = () => {
+        if (resolved) return;
+        resolved = true;
+        audio.removeEventListener('ended', done);
+        audio.removeEventListener('error', handleError);
+        pendingResolversRef.current.delete(done);
+        console.log(`${audioKey} finished`);
+        resolve();
+      };
+
+      const handleError = () => {
+        console.error(`Audio play error for ${audioKey}`);
+        done();
+      };
+
+      pendingResolversRef.current.add(done);
+      audio.addEventListener('ended', done);
+      audio.addEventListener('error', handleError);
+
+      console.log(`Playing ${audioKey}`);
+      audio.play().catch((err) => {
+        console.error('Audio play error:', err);
+        done();
+      });
+    });
   }, [initAudioContext]);
 
   const stopAllAudio = useCallback(() => {
     if (audioFilesRef.current) {
-      Object.values(audioFilesRef.current).forEach(audio => {
+      Object.values(audioFilesRef.current).forEach((audio) => {
         audio.pause();
         audio.currentTime = 0;
       });
     }
+
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
+    }
+
+    // Force-resolve any pending audio promises
+    pendingResolversRef.current.forEach((resolve) => resolve());
+    pendingResolversRef.current.clear();
   }, []);
 
   return {
