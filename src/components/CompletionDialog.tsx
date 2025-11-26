@@ -22,8 +22,8 @@ export const CompletionDialog = ({ open, onClose, cycleCount }: CompletionDialog
             Beautiful work!
           </DialogTitle>
           <DialogDescription className="text-center text-base text-muted-foreground space-y-2">
-            <p className="text-lg font-medium text-foreground">{cycleCount} cycles completed.</p>
-            <p>You've given yourself the gift of calm.</p>
+            <p className="text-lg font-medium text-foreground">You completed {cycleCount} {cycleCount === 1 ? 'cycle' : 'cycles'} of box breathing.</p>
+            <p>Your mind and body thank you.</p>
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-center pt-4">
