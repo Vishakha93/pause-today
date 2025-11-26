@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface AudioFiles {
   welcomeMessage: HTMLAudioElement;
-  boxBreathingIntro: HTMLAudioElement;
+  boxBreathingExplanation: HTMLAudioElement;
   breatheIn: HTMLAudioElement;
   hold: HTMLAudioElement;
   holdYourBreath: HTMLAudioElement;
@@ -34,7 +34,7 @@ export const useAudioManager = () => {
     const audioFiles: Partial<AudioFiles> = {};
     const audioSources = {
       welcomeMessage: '/audio/WelcomeMessage.mp3',
-      boxBreathingIntro: '/audio/BoxBreathingIntro.mp3',
+      boxBreathingExplanation: '/audio/BoxBreathingExplanation.mp3',
       breatheIn: '/audio/BreatheIn.mp3',
       hold: '/audio/Hold.mp3',
       holdYourBreath: '/audio/HoldYourBreath.mp3',
