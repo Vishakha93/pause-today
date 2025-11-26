@@ -1,53 +1,46 @@
 import { useEffect, useState } from "react";
 
-type BreathingPhase = "inhale" | "hold" | "exhale" | "hold-empty";
+type BreathingPhase = "welcome" | "intro" | "inhale" | "hold-full" | "exhale" | "hold-empty";
 
 interface BreathingCircleProps {
   phase: BreathingPhase;
   isActive: boolean;
-  onToggle: () => void;
+  onTap: () => void;
+  scale: number;
+  currentCount?: number;
 }
 
-export const BreathingCircle = ({ phase, isActive, onToggle }: BreathingCircleProps) => {
-  const [scale, setScale] = useState(1);
+export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }: BreathingCircleProps) => {
+  const [displayScale, setDisplayScale] = useState(0.5);
 
   useEffect(() => {
-    if (!isActive) {
-      setScale(1);
-      return;
-    }
-
-    switch (phase) {
-      case "inhale":
-        setScale(1.3);
-        break;
-      case "hold":
-        setScale(1.3);
-        break;
-      case "exhale":
-        setScale(0.7);
-        break;
-      case "hold-empty":
-        setScale(0.7);
-        break;
-      default:
-        setScale(1);
-    }
-  }, [phase, isActive]);
+    setDisplayScale(scale);
+  }, [scale]);
 
   const getPhaseText = () => {
     switch (phase) {
+      case "welcome":
+        return "Welcome";
+      case "intro":
+        return "Listen & Follow";
       case "inhale":
         return "Breathe In";
-      case "hold":
+      case "hold-full":
         return "Hold";
       case "exhale":
         return "Breathe Out";
       case "hold-empty":
         return "Hold";
       default:
-        return "Ready";
+        return "Ready to Begin";
     }
+  };
+
+  const getTransitionDuration = () => {
+    if (phase === "inhale" || phase === "exhale") {
+      return "4s";
+    }
+    return "0.3s";
   };
 
   return (
@@ -58,26 +51,26 @@ export const BreathingCircle = ({ phase, isActive, onToggle }: BreathingCirclePr
       
       <div 
         className="relative flex items-center justify-center w-full max-w-[280px] md:max-w-[320px] aspect-square cursor-pointer group"
-        onClick={onToggle}
+        onClick={onTap}
       >
         {/* Wave ripples */}
         <div 
-          className="absolute inset-0 rounded-full"
+          className="absolute inset-0 rounded-full pointer-events-none"
           style={{
             background: 'radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, hsl(var(--secondary) / 0.2) 50%, transparent 70%)',
-            transform: `scale(${scale * 1.3})`,
-            transition: 'transform 4s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: `scale(${displayScale * 1.3})`,
+            transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1)`,
             opacity: isActive ? 1 : 0.5,
           }}
         />
         <div 
-          className="absolute inset-0 rounded-full"
+          className="absolute inset-0 rounded-full pointer-events-none"
           style={{
             background: 'radial-gradient(circle, hsl(var(--secondary) / 0.2) 0%, transparent 60%)',
-            transform: `scale(${scale * 1.15})`,
-            transition: 'transform 4s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: `scale(${displayScale * 1.15})`,
+            transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1)`,
             opacity: isActive ? 0.8 : 0.4,
-            transitionDelay: '0.3s',
+            transitionDelay: '0.1s',
           }}
         />
         
@@ -86,17 +79,17 @@ export const BreathingCircle = ({ phase, isActive, onToggle }: BreathingCirclePr
           className="relative w-full h-full rounded-full flex items-center justify-center overflow-hidden"
           style={{
             background: 'linear-gradient(135deg, hsl(var(--primary) / 0.6), hsl(var(--secondary) / 0.6))',
-            transform: `scale(${scale})`,
-            transition: 'transform 4s cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: '0 0 40px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--secondary) / 0.25), inset 0 0 30px hsl(var(--primary) / 0.2)',
+            transform: `scale(${displayScale})`,
+            transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1)`,
+            boxShadow: `0 0 ${40 * displayScale}px hsl(var(--primary) / 0.4), 0 0 ${60 * displayScale}px hsl(var(--secondary) / 0.25), inset 0 0 30px hsl(var(--primary) / 0.2)`,
           }}
         >
           {/* Wave effect overlay */}
           <div 
-            className="absolute inset-0 opacity-50"
+            className="absolute inset-0 opacity-50 pointer-events-none"
             style={{
               background: 'radial-gradient(ellipse at center, transparent 30%, hsl(var(--primary) / 0.3) 60%, transparent 90%)',
-              animation: isActive ? 'wave 4s ease-in-out infinite' : 'none',
+              animation: isActive && phase !== "welcome" ? 'wave 4s ease-in-out infinite' : 'none',
             }}
           />
           
@@ -105,6 +98,11 @@ export const BreathingCircle = ({ phase, isActive, onToggle }: BreathingCirclePr
             {!isActive && (
               <span className="text-sm text-foreground/60 group-hover:text-foreground/80 transition-colors">
                 Tap to begin
+              </span>
+            )}
+            {isActive && currentCount && currentCount > 0 && (
+              <span className="text-4xl font-light text-foreground/80 animate-fade-in">
+                {currentCount}
               </span>
             )}
           </div>
