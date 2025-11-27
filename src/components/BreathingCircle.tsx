@@ -62,22 +62,26 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
           }
         }}
       >
-        {/* Outer concentric rings */}
-        <div 
-          className="absolute inset-0 rounded-full pointer-events-none animate-pulse"
-          style={{
-            background: 'radial-gradient(circle, transparent 40%, hsl(var(--primary) / 0.15) 50%, transparent 60%)',
-            animationDuration: '3s',
-          }}
-        />
-        <div 
-          className="absolute inset-0 rounded-full pointer-events-none animate-pulse"
-          style={{
-            background: 'radial-gradient(circle, transparent 50%, hsl(var(--secondary) / 0.15) 60%, transparent 70%)',
-            animationDuration: '4s',
-            animationDelay: '1s',
-          }}
-        />
+        {/* Outer concentric rings - only visible when active */}
+        {isActive && (
+          <>
+            <div 
+              className="absolute inset-0 rounded-full pointer-events-none animate-pulse"
+              style={{
+                background: 'radial-gradient(circle, transparent 40%, hsl(var(--primary) / 0.15) 50%, transparent 60%)',
+                animationDuration: '3s',
+              }}
+            />
+            <div 
+              className="absolute inset-0 rounded-full pointer-events-none animate-pulse"
+              style={{
+                background: 'radial-gradient(circle, transparent 50%, hsl(var(--secondary) / 0.15) 60%, transparent 70%)',
+                animationDuration: '4s',
+                animationDelay: '1s',
+              }}
+            />
+          </>
+        )}
         
         {/* Wave ripples */}
         <div 
@@ -101,7 +105,7 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
         
         {/* Main breathing circle with wave effect */}
         <div 
-          className="relative w-full h-full rounded-full flex items-center justify-center overflow-hidden animate-pulse"
+          className="relative w-full h-full rounded-full flex items-center justify-center overflow-hidden"
           style={{
             background: 'radial-gradient(circle at center, hsl(var(--primary) / 0.7) 0%, hsl(var(--primary) / 0.5) 40%, hsl(var(--secondary) / 0.6) 100%)',
             transform: `scale(${displayScale})`,
@@ -112,18 +116,20 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
               0 0 ${60 * displayScale}px hsl(var(--secondary) / 0.4), 
               inset 0 0 40px hsl(var(--primary) / 0.3)
             `,
-            animationDuration: '2s',
+            animation: isActive ? 'none' : 'gentle-breathe 6s ease-in-out infinite',
           }}
         >
-          {/* Shimmer effect */}
-          <div 
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: 'linear-gradient(45deg, transparent 30%, hsl(var(--primary) / 0.3) 50%, transparent 70%)',
-              backgroundSize: '200% 200%',
-              animation: 'shimmer 3s ease-in-out infinite',
-            }}
-          />
+          {/* Shimmer effect - only when active */}
+          {isActive && (
+            <div 
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                background: 'linear-gradient(45deg, transparent 30%, hsl(var(--primary) / 0.3) 50%, transparent 70%)',
+                backgroundSize: '200% 200%',
+                animation: 'shimmer 3s ease-in-out infinite',
+              }}
+            />
+          )}
           
           {/* Wave effect overlay */}
           <div 
