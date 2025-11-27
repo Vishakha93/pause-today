@@ -98,6 +98,8 @@ export default {
         "fade-out": "fade-out 0.3s ease-out",
         "float": "float linear infinite",
         "shimmer": "shimmer 3s ease-in-out infinite",
+        "drift": "drift 40s ease-in-out infinite",
+        "gradient": "gradient-shift 60s ease infinite",
       },
     },
   },

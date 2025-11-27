@@ -106,7 +106,12 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
             background: 'radial-gradient(circle at center, hsl(var(--primary) / 0.7) 0%, hsl(var(--primary) / 0.5) 40%, hsl(var(--secondary) / 0.6) 100%)',
             transform: `scale(${displayScale})`,
             transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1)`,
-            boxShadow: `0 0 ${40 * displayScale}px hsl(var(--primary) / 0.5), 0 0 ${60 * displayScale}px hsl(var(--secondary) / 0.3), inset 0 0 40px hsl(var(--primary) / 0.3)`,
+            boxShadow: `
+              0 20px 60px rgba(0, 0, 0, 0.4),
+              0 0 ${40 * displayScale}px hsl(var(--primary) / 0.6), 
+              0 0 ${60 * displayScale}px hsl(var(--secondary) / 0.4), 
+              inset 0 0 40px hsl(var(--primary) / 0.3)
+            `,
             animationDuration: '2s',
           }}
         >
