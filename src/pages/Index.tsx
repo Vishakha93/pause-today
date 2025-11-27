@@ -300,6 +300,24 @@ const Index = () => {
     };
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleTap();
+      }
+      
+      if (e.code === 'Escape' && stage !== "idle") {
+        handleStop();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [stage]);
+
   if (loadError) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -312,71 +330,58 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Ambient background circles */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-      
-      <div className="relative z-10 w-full max-w-md space-y-12">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wider text-foreground">
-            Box Breathing
-          </h1>
-          <p className="text-muted-foreground text-sm md:text-base">
-            Find your calm, one breath at a time
-          </p>
-        </div>
-
-        {/* Breathing Circle */}
-        <BreathingCircle 
-          phase={phase} 
-          isActive={stage !== "idle"} 
-          onTap={handleTap}
-          scale={scale}
-          currentCount={currentCount}
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden">
+      {/* Floating particles */}
+      {Array.from({ length: 25 }).map((_, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full bg-white/20 pointer-events-none"
+          style={{
+            width: `${Math.random() * 4 + 2}px`,
+            height: `${Math.random() * 4 + 2}px`,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animation: `floatUp ${20 + Math.random() * 20}s linear infinite`,
+            animationDelay: `${Math.random() * 10}s`,
+            opacity: Math.random() * 0.15 + 0.1,
+          }}
         />
+      ))}
 
-        {/* Controls */}
-        <div className="flex flex-col items-center gap-6">
-          {/* Cycle Counter */}
-          {cycleCount > 0 && stage === "breathing" && (
-            <div className="text-center">
-              <p className="text-muted-foreground text-sm">Cycle</p>
-              <p className="text-3xl font-light text-foreground">{cycleCount}</p>
-            </div>
-          )}
-
-          {/* Start/Stop Button */}
-          <Button
-            onClick={stage === "idle" ? handleStart : handleStop}
-            size="lg"
-            disabled={isLoading}
-            className="w-40 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-lg shadow-lg hover:shadow-xl transition-all"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Loading...
-              </>
-            ) : stage === "idle" ? (
-              <>
-                <Play className="mr-2 h-5 w-5" />
-                Start
-              </>
-            ) : (
-              <>
-                <Square className="mr-2 h-5 w-5" />
-                Stop
-              </>
-            )}
-          </Button>
-        </div>
-
+      {/* Background glow orbs */}
+      <div 
+        className="absolute w-[250px] h-[250px] rounded-full blur-[100px] opacity-[0.08] bg-primary pointer-events-none"
+        style={{
+          top: '20%',
+          left: '15%',
+          animation: 'orbDrift 40s ease-in-out infinite',
+        }}
+      />
+      <div 
+        className="absolute w-[250px] h-[250px] rounded-full blur-[100px] opacity-[0.06] bg-secondary pointer-events-none"
+        style={{
+          bottom: '15%',
+          right: '20%',
+          animation: 'orbDrift 35s ease-in-out infinite',
+          animationDelay: '10s',
+        }}
+      />
+      <div 
+        className="absolute w-[250px] h-[250px] rounded-full blur-[100px] opacity-[0.05] bg-accent pointer-events-none"
+        style={{
+          top: '60%',
+          left: '70%',
+          animation: 'orbDrift 45s ease-in-out infinite',
+          animationDelay: '20s',
+        }}
+      />
+      
+      {/* Glassmorphism card - LOCKED DIMENSIONS */}
+      <div className="glassmorphism-card relative z-10 w-[600px] max-w-[90vw] min-h-[550px] p-8 md:p-12 lg:p-16 box-border flex flex-col">
         {/* Mute Toggle */}
         <button
           onClick={toggleMute}
-          className="absolute top-6 right-6 p-3 rounded-full bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors"
+          className="absolute top-4 right-4 w-12 h-12 rounded-full glassmorphism-button flex items-center justify-center transition-all hover:scale-110"
           aria-label={isMuted ? "Unmute" : "Mute"}
         >
           {isMuted ? (
@@ -385,6 +390,62 @@ const Index = () => {
             <Volume2 className="h-5 w-5 text-foreground" />
           )}
         </button>
+
+        {/* Header */}
+        <div className="text-center space-y-3 mb-8">
+          <h1 className="text-4xl md:text-5xl lg:text-[56px] font-light tracking-[2px] text-foreground" style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}>
+            Box Breathing
+          </h1>
+          <p className="text-foreground/90 text-base md:text-lg tracking-[0.5px]">
+            Find your calm, one breath at a time
+          </p>
+        </div>
+
+        {/* Breathing Circle */}
+        <div className="flex-1 flex items-center justify-center">
+          <BreathingCircle 
+            phase={phase} 
+            isActive={stage !== "idle"} 
+            onTap={handleTap}
+            scale={scale}
+            currentCount={currentCount}
+          />
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-col items-center gap-6 mt-8">
+          {/* Cycle Counter */}
+          {cycleCount > 0 && stage === "breathing" && (
+            <div className="text-center">
+              <p className="text-muted-foreground text-sm tracking-wide">Cycle</p>
+              <p className="text-3xl font-light text-foreground">{cycleCount}</p>
+            </div>
+          )}
+
+          {/* Start/Stop Button */}
+          <button
+            onClick={stage === "idle" ? handleStart : handleStop}
+            disabled={isLoading}
+            className="glassmorphism-button px-9 py-3.5 rounded-full font-medium text-base tracking-wide shadow-[0_4px_20px_rgba(100,150,255,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="inline mr-2 h-5 w-5 animate-spin" />
+                Loading...
+              </>
+            ) : stage === "idle" ? (
+              <>
+                <Play className="inline mr-2 h-5 w-5" />
+                Start
+              </>
+            ) : (
+              <>
+                <Square className="inline mr-2 h-5 w-5" />
+                Stop
+              </>
+            )}
+          </button>
+        </div>
 
         {/* Completion Dialog */}
         <CompletionDialog 
