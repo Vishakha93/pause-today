@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { BreathingCircle } from "@/components/BreathingCircle";
 import { CompletionDialog } from "@/components/CompletionDialog";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import { BackgroundOrbs } from "@/components/BackgroundOrbs";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX, Play, Square, Loader2 } from "lucide-react";
 import { useAudioManager } from "@/hooks/useAudioManager";
@@ -408,23 +409,25 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden animate-gradient">
       {/* Floating particles */}
       <FloatingParticles />
       
-      {/* Ambient background circles */}
-      <div className="absolute top-1/4 left-1/4 w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      {/* Background orbs */}
+      <BackgroundOrbs />
+      
+      {/* Vignette effect */}
+      <div className="fixed inset-0 pointer-events-none bg-gradient-radial from-transparent via-transparent to-black/40" />
       
       {/* Glass-morphism container */}
       <div className="relative z-10 w-full max-w-md lg:max-w-2xl">
-        <div className="backdrop-blur-xl bg-background/30 rounded-3xl p-8 sm:p-10 md:p-12 lg:p-16 border border-primary/20 shadow-2xl space-y-8 sm:space-y-10 md:space-y-12 lg:space-y-16">
+        <div className="glass-card rounded-3xl p-10 sm:p-12 md:p-14 lg:p-16 space-y-10 sm:space-y-12 md:space-y-14 lg:space-y-16">
           {/* Header */}
-          <div className="text-center space-y-2 md:space-y-3">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-wider text-foreground">
+          <div className="text-center space-y-3 md:space-y-4">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extralight tracking-[0.15em] text-foreground premium-text-shadow">
               Pause
             </h1>
-            <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
+            <p className="text-muted-foreground text-sm sm:text-base md:text-lg tracking-wider opacity-90">
               Find your calm, one breath at a time
             </p>
           </div>
@@ -453,7 +456,7 @@ const Index = () => {
               onClick={stage === "idle" ? handleStart : handleStop}
               size="lg"
               disabled={isLoading}
-              className="w-40 h-14 sm:w-44 sm:h-16 md:w-52 md:h-16 lg:w-56 lg:h-16 rounded-full bg-primary/80 backdrop-blur-sm hover:bg-primary/90 hover:scale-105 active:scale-95 text-primary-foreground font-medium text-base sm:text-lg md:text-xl shadow-[0_0_30px_hsl(var(--primary)/0.4)] hover:shadow-[0_0_40px_hsl(var(--primary)/0.6)] transition-all duration-300 min-h-[44px] border border-primary/30"
+              className="glass-button w-44 h-14 sm:w-48 sm:h-16 md:w-56 md:h-16 lg:w-60 lg:h-16 rounded-full font-medium text-base sm:text-lg md:text-xl transition-all duration-300 min-h-[44px] hover:-translate-y-0.5 active:translate-y-0"
             >
             {isLoading ? (
               <>
@@ -473,26 +476,31 @@ const Index = () => {
             )}
           </Button>
           
-          {/* Keyboard hint - desktop only */}
-          {stage === "idle" && !isLoading && (
-            <p className="text-xs text-muted-foreground/50 mt-2 hidden lg:block">
-              Press Space to start
-            </p>
-          )}
         </div>
+        
+        {/* Keyboard hint badge - desktop only */}
+        {stage === "idle" && !isLoading && (
+          <div className="hidden lg:flex justify-center mt-6">
+            <div className="glass-badge px-4 py-2 rounded-full">
+              <p className="text-xs text-muted-foreground/70 tracking-wide">
+                Press <kbd className="px-2 py-0.5 mx-1 bg-foreground/10 rounded text-foreground/90 font-mono text-xs">Space</kbd> to start
+              </p>
+            </div>
+          </div>
+        )}
         </div>
       </div>
 
       {/* Mute Toggle - outside glass container */}
       <button
         onClick={toggleMute}
-        className="fixed top-4 right-4 sm:top-6 sm:right-6 z-20 p-3 sm:p-3.5 md:p-4 rounded-full bg-background/40 backdrop-blur-md hover:bg-background/60 hover:scale-110 active:scale-95 transition-all duration-200 min-w-[48px] min-h-[48px] flex items-center justify-center cursor-pointer border border-primary/20 shadow-lg"
+        className="fixed top-4 right-4 sm:top-6 sm:right-6 z-20 w-12 h-12 sm:w-14 sm:h-14 rounded-full glass-icon hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer group"
         aria-label={isMuted ? "Unmute" : "Mute"}
       >
         {isMuted ? (
-          <VolumeX className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-muted-foreground" />
+          <VolumeX className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground group-hover:text-foreground transition-colors" />
         ) : (
-          <Volume2 className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-foreground" />
+          <Volume2 className="h-6 w-6 sm:h-7 sm:w-7 text-foreground group-hover:scale-110 transition-transform" />
         )}
       </button>
 
