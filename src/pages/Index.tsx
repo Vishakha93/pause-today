@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { BreathingCircle } from "@/components/BreathingCircle";
 import { CompletionDialog } from "@/components/CompletionDialog";
+import { FloatingParticles } from "@/components/FloatingParticles";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX, Play, Square, Loader2 } from "lucide-react";
 import { useAudioManager } from "@/hooks/useAudioManager";
@@ -408,52 +409,52 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden">
+      {/* Floating particles */}
+      <FloatingParticles />
+      
       {/* Ambient background circles */}
       <div className="absolute top-1/4 left-1/4 w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       
-      <div className="relative z-10 w-full max-w-md lg:max-w-2xl space-y-8 sm:space-y-10 md:space-y-12 lg:space-y-16">
-        {/* Header */}
-        <div className="text-center space-y-2 md:space-y-3">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-wider text-foreground">
-            Box Breathing
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
-            Find your calm, one breath at a time
-          </p>
-          {stage === "idle" && !isLoading && (
-            <p className="text-xs sm:text-sm text-muted-foreground/70 mt-2 hidden md:block">
-              Press Space to start
+      {/* Glass-morphism container */}
+      <div className="relative z-10 w-full max-w-md lg:max-w-2xl">
+        <div className="backdrop-blur-xl bg-background/30 rounded-3xl p-8 sm:p-10 md:p-12 lg:p-16 border border-primary/20 shadow-2xl space-y-8 sm:space-y-10 md:space-y-12 lg:space-y-16">
+          {/* Header */}
+          <div className="text-center space-y-2 md:space-y-3">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-wider text-foreground">
+              Pause
+            </h1>
+            <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
+              Find your calm, one breath at a time
             </p>
-          )}
-        </div>
+          </div>
 
-        {/* Breathing Circle */}
-        <BreathingCircle 
-          phase={phase} 
-          isActive={stage !== "idle"} 
-          onTap={handleTap}
-          scale={scale}
-          currentCount={currentCount}
-        />
+          {/* Breathing Circle */}
+          <BreathingCircle 
+            phase={phase} 
+            isActive={stage !== "idle"} 
+            onTap={handleTap}
+            scale={scale}
+            currentCount={currentCount}
+          />
 
-        {/* Controls */}
-        <div className="flex flex-col items-center gap-4 sm:gap-5 md:gap-6">
-          {/* Cycle Counter */}
-          {cycleCount > 0 && stage === "breathing" && (
-            <div className="text-center">
-              <p className="text-muted-foreground text-xs sm:text-sm md:text-base">Cycle</p>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-light text-foreground">{cycleCount}</p>
-            </div>
-          )}
+          {/* Controls */}
+          <div className="flex flex-col items-center gap-4 sm:gap-5 md:gap-6">
+            {/* Cycle Counter */}
+            {cycleCount > 0 && stage === "breathing" && (
+              <div className="text-center">
+                <p className="text-muted-foreground text-xs sm:text-sm md:text-base">Cycle</p>
+                <p className="text-2xl sm:text-3xl md:text-4xl font-light text-foreground">{cycleCount}</p>
+              </div>
+            )}
 
-          {/* Start/Stop Button */}
-          <Button
-            onClick={stage === "idle" ? handleStart : handleStop}
-            size="lg"
-            disabled={isLoading}
-            className="w-36 h-12 sm:w-40 sm:h-14 md:w-48 md:h-16 lg:w-52 lg:h-16 rounded-full bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 text-primary-foreground font-medium text-base sm:text-lg md:text-xl shadow-lg hover:shadow-xl transition-all duration-200 min-h-[44px]"
-          >
+            {/* Start/Stop Button */}
+            <Button
+              onClick={stage === "idle" ? handleStart : handleStop}
+              size="lg"
+              disabled={isLoading}
+              className="w-40 h-14 sm:w-44 sm:h-16 md:w-52 md:h-16 lg:w-56 lg:h-16 rounded-full bg-primary/80 backdrop-blur-sm hover:bg-primary/90 hover:scale-105 active:scale-95 text-primary-foreground font-medium text-base sm:text-lg md:text-xl shadow-[0_0_30px_hsl(var(--primary)/0.4)] hover:shadow-[0_0_40px_hsl(var(--primary)/0.6)] transition-all duration-300 min-h-[44px] border border-primary/30"
+            >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
@@ -471,28 +472,36 @@ const Index = () => {
               </>
             )}
           </Button>
-        </div>
-
-        {/* Mute Toggle */}
-        <button
-          onClick={toggleMute}
-          className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2.5 sm:p-3 md:p-3.5 rounded-full bg-card/50 backdrop-blur-sm hover:bg-card/70 hover:scale-110 active:scale-95 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
-          aria-label={isMuted ? "Unmute" : "Mute"}
-        >
-          {isMuted ? (
-            <VolumeX className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-muted-foreground" />
-          ) : (
-            <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-foreground" />
+          
+          {/* Keyboard hint - desktop only */}
+          {stage === "idle" && !isLoading && (
+            <p className="text-xs text-muted-foreground/50 mt-2 hidden lg:block">
+              Press Space to start
+            </p>
           )}
-        </button>
-
-        {/* Completion Dialog */}
-        <CompletionDialog 
-          open={showCompletion}
-          onClose={handleCompletionClose}
-          cycleCount={cycleCount}
-        />
+        </div>
+        </div>
       </div>
+
+      {/* Mute Toggle - outside glass container */}
+      <button
+        onClick={toggleMute}
+        className="fixed top-4 right-4 sm:top-6 sm:right-6 z-20 p-3 sm:p-3.5 md:p-4 rounded-full bg-background/40 backdrop-blur-md hover:bg-background/60 hover:scale-110 active:scale-95 transition-all duration-200 min-w-[48px] min-h-[48px] flex items-center justify-center cursor-pointer border border-primary/20 shadow-lg"
+        aria-label={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? (
+          <VolumeX className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-muted-foreground" />
+        ) : (
+          <Volume2 className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-foreground" />
+        )}
+      </button>
+
+      {/* Completion Dialog */}
+      <CompletionDialog 
+        open={showCompletion}
+        onClose={handleCompletionClose}
+        cycleCount={cycleCount}
+      />
     </div>
   );
 };
