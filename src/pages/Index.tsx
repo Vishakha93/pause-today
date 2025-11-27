@@ -489,27 +489,35 @@ const Index = () => {
         {/* Mute Toggle */}
         <button
           onClick={toggleMute}
-          className="absolute top-4 right-4 w-12 h-12 rounded-full glassmorphism-button flex items-center justify-center transition-all hover:scale-110"
+          className="absolute top-4 right-4 w-12 h-12 rounded-full glassmorphism-button flex items-center justify-center group/mute"
           aria-label={isMuted ? "Unmute" : "Mute"}
+          style={{
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          }}
         >
           {isMuted ? (
-            <VolumeX className="h-5 w-5 text-muted-foreground" />
+            <VolumeX className="h-5 w-5 text-muted-foreground transition-all duration-300 group-hover/mute:text-foreground" />
           ) : (
-            <Volume2 className="h-5 w-5 text-foreground" />
+            <Volume2 className="h-5 w-5 text-foreground/90 transition-all duration-300 group-hover/mute:text-foreground" />
           )}
         </button>
 
         {/* Header */}
-        <div className="text-center space-y-4 mb-10">
+        <div className="text-center space-y-5 mb-12">
           <h1 
-            className="text-5xl md:text-6xl lg:text-[64px] font-extralight tracking-[3px] text-foreground" 
+            className="text-5xl md:text-6xl lg:text-[64px] font-extralight tracking-[4px] text-foreground transition-all duration-700" 
             style={{ 
-              textShadow: '0 2px 25px rgba(255,255,255,0.35), 0 4px 40px rgba(100,150,255,0.15)' 
+              textShadow: '0 2px 32px rgba(255,255,255,0.4), 0 6px 48px rgba(100,150,255,0.2)',
+              letterSpacing: '0.15em',
             }}
           >
             Pause
           </h1>
-          <p className="text-foreground/90 text-base md:text-lg tracking-[1px] font-light opacity-90">
+          <p className="text-foreground/95 text-base md:text-lg tracking-[2px] font-light opacity-95 transition-all duration-500"
+            style={{
+              textShadow: '0 1px 16px rgba(255, 255, 255, 0.15)',
+            }}
+          >
             Find your calm, one breath at a time
           </p>
         </div>
@@ -526,12 +534,20 @@ const Index = () => {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col items-center gap-6 mt-8">
+        <div className="flex flex-col items-center gap-7 mt-10">
           {/* Cycle Counter */}
           {cycleCount > 0 && stage === "breathing" && (
-            <div className="text-center">
-              <p className="text-muted-foreground text-sm tracking-wide">Cycle</p>
-              <p className="text-3xl font-light text-foreground">{cycleCount}</p>
+            <div className="text-center transition-all duration-700 animate-fade-in">
+              <p className="text-muted-foreground/90 text-sm tracking-[2px] font-light mb-1"
+                style={{ textShadow: '0 1px 8px rgba(0, 0, 0, 0.2)' }}
+              >
+                Cycle
+              </p>
+              <p className="text-4xl font-extralight text-foreground/95"
+                style={{ textShadow: '0 2px 16px rgba(255, 255, 255, 0.2)' }}
+              >
+                {cycleCount}
+              </p>
             </div>
           )}
 
@@ -539,7 +555,10 @@ const Index = () => {
           <button
             onClick={stage === "idle" ? handleStart : handleStop}
             disabled={isLoading}
-            className="glassmorphism-button px-10 py-4 rounded-full font-medium text-base tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+            className="glassmorphism-button px-12 py-4 rounded-full font-light text-base tracking-[2px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 relative overflow-hidden group/btn"
+            style={{
+              textShadow: '0 1px 8px rgba(0, 0, 0, 0.2)',
+            }}
           >
             {isLoading ? (
               <>
@@ -548,22 +567,22 @@ const Index = () => {
               </>
             ) : stage === "idle" ? (
               <>
-                <Play className="h-5 w-5 fill-current" />
+                <Play className="h-5 w-5 fill-current transition-transform duration-300 group-hover/btn:scale-110" />
                 <span>Start</span>
               </>
             ) : (
               <>
-                <Square className="h-5 w-5 fill-current" />
+                <Square className="h-5 w-5 fill-current transition-transform duration-300 group-hover/btn:scale-110" />
                 <span>Stop</span>
               </>
             )}
           </button>
           
           {/* Keyboard shortcut hint - desktop only */}
-          <div className="hidden md:block mt-4">
-            <div className="keyboard-badge text-foreground/70 flex items-center gap-2">
+          <div className="hidden md:block mt-2">
+            <div className="keyboard-badge text-foreground/75 flex items-center gap-2.5 transition-all duration-500 hover:text-foreground/95">
               <Command className="h-3.5 w-3.5" />
-              <span>Press Space to {stage === "idle" ? "start" : "stop"}</span>
+              <span className="text-xs tracking-[1px]">Press Space to {stage === "idle" ? "start" : "stop"}</span>
             </div>
           </div>
         </div>

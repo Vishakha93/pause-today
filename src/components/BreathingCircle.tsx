@@ -66,16 +66,23 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 w-full">
-      <h2 className="text-xl md:text-2xl lg:text-3xl font-light tracking-[1.5px] text-foreground/90 min-h-[36px]">
+    <div className="flex flex-col items-center justify-center gap-8 w-full">
+      <h2 
+        className="text-xl md:text-2xl lg:text-3xl font-light tracking-[2px] text-foreground/95 min-h-[40px] transition-all duration-700 ease-out"
+        style={{
+          textShadow: '0 2px 24px rgba(255, 255, 255, 0.2)',
+          opacity: isActive ? 1 : 0.85,
+          transform: isActive ? 'translateY(0)' : 'translateY(-4px)',
+        }}
+      >
         {isActive ? getPhaseText() : "Ready to Begin"}
       </h2>
       
       <div 
-        className="relative flex items-center justify-center w-full max-w-[280px] md:max-w-[350px] lg:max-w-[400px] aspect-square cursor-pointer group"
+        className="relative flex items-center justify-center w-full max-w-[280px] md:max-w-[350px] lg:max-w-[400px] aspect-square cursor-pointer group transition-all duration-500 ease-out"
         onClick={onTap}
         style={{
-          animation: !isActive ? 'idlePulse 3s ease-in-out infinite' : 'none',
+          animation: !isActive ? 'idlePulse 4s ease-in-out infinite' : 'none',
         }}
       >
         {/* Concentric ripple rings - only when active */}
@@ -102,32 +109,33 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
         <div 
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
-            background: 'radial-gradient(circle, hsl(var(--primary) / 0.35) 0%, hsl(var(--secondary) / 0.25) 50%, transparent 70%)',
-            transform: `scale(${displayScale * 1.3})`,
-            transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1)`,
-            opacity: isActive ? 1 : 0.5,
+            background: 'radial-gradient(circle, hsl(var(--primary) / 0.4) 0%, hsl(var(--secondary) / 0.28) 50%, transparent 70%)',
+            transform: `scale(${displayScale * 1.35})`,
+            transition: `transform ${getTransitionDuration()} cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 0.6s ease-out`,
+            opacity: isActive ? 1 : 0.45,
           }}
         />
         <div 
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
-            background: 'radial-gradient(circle, hsl(var(--secondary) / 0.25) 0%, transparent 60%)',
-            transform: `scale(${displayScale * 1.15})`,
-            transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1)`,
-            opacity: isActive ? 0.9 : 0.5,
+            background: 'radial-gradient(circle, hsl(var(--secondary) / 0.3) 0%, hsl(var(--accent) / 0.15) 50%, transparent 65%)',
+            transform: `scale(${displayScale * 1.18})`,
+            transition: `transform ${getTransitionDuration()} cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 0.6s ease-out`,
+            opacity: isActive ? 0.95 : 0.45,
           }}
         />
         
         {/* Main breathing circle with enhanced styling and dynamic colors */}
         <div 
-          className="relative w-full h-full rounded-full flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-[1.05] group-hover:brightness-110"
+          className="relative w-full h-full rounded-full flex items-center justify-center overflow-hidden"
           style={{
             background: getOrbGradient(),
             transform: `scale(${displayScale})`,
-            transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1), background 4s ease-in-out, filter 0.3s ease`,
+            transition: `transform ${getTransitionDuration()} cubic-bezier(0.45, 0.05, 0.55, 0.95), background 5s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow ${getTransitionDuration()} cubic-bezier(0.45, 0.05, 0.55, 0.95)`,
             boxShadow: isActive 
-              ? `0 25px 70px rgba(0,0,0,0.6), 0 0 ${80 * displayScale}px hsl(var(--primary) / 0.6), 0 0 ${120 * displayScale}px hsl(var(--secondary) / 0.35), inset 0 0 50px hsl(var(--primary) / 0.15)`
-              : `0 20px 60px rgba(0,0,0,0.5), 0 0 ${60 * displayScale}px hsl(var(--primary) / 0.45), 0 0 ${90 * displayScale}px hsl(var(--secondary) / 0.25), inset 0 0 40px hsl(var(--primary) / 0.1)`,
+              ? `0 30px 80px rgba(0,0,0,0.65), 0 0 ${90 * displayScale}px hsl(var(--primary) / 0.65), 0 0 ${140 * displayScale}px hsl(var(--secondary) / 0.4), inset 0 0 60px hsl(var(--primary) / 0.18), inset 0 -20px 40px hsl(var(--secondary) / 0.1)`
+              : `0 24px 70px rgba(0,0,0,0.55), 0 0 ${70 * displayScale}px hsl(var(--primary) / 0.5), 0 0 ${100 * displayScale}px hsl(var(--secondary) / 0.3), inset 0 0 50px hsl(var(--primary) / 0.12), inset 0 -15px 30px hsl(var(--secondary) / 0.08)`,
+            filter: isActive ? 'brightness(1.05) saturate(1.1)' : 'brightness(1) saturate(1)',
           }}
         >
           {/* Wave effect overlay */}
@@ -140,14 +148,29 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
           />
           
           {/* Inner circle */}
-          <div className="relative w-[85%] h-[85%] rounded-full bg-background/5 backdrop-blur-sm border border-foreground/5 flex items-center justify-center">
+          <div className="relative w-[85%] h-[85%] rounded-full bg-background/5 backdrop-blur-sm border border-foreground/10 flex items-center justify-center transition-all duration-500"
+            style={{
+              boxShadow: 'inset 0 2px 12px rgba(0, 0, 0, 0.2)',
+            }}
+          >
             {!isActive && (
-              <span className="text-sm md:text-base text-foreground/60 group-hover:text-foreground/80 transition-colors">
+              <span 
+                className="text-sm md:text-base text-foreground/70 font-light tracking-wide transition-all duration-500"
+                style={{
+                  textShadow: '0 1px 8px rgba(0, 0, 0, 0.3)',
+                }}
+              >
                 Tap to begin
               </span>
             )}
             {isActive && currentCount && currentCount > 0 && (
-              <span className="text-4xl md:text-5xl font-light text-foreground/80 animate-fade-in">
+              <span 
+                className="text-4xl md:text-5xl font-extralight text-foreground/85 transition-all duration-300"
+                style={{
+                  textShadow: '0 2px 16px rgba(255, 255, 255, 0.3)',
+                  animation: 'fadeInScale 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                }}
+              >
                 {currentCount}
               </span>
             )}
