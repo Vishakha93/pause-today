@@ -294,11 +294,14 @@ const Index = () => {
     }
   }
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (isLoading || loadError) return;
 
     console.log('Starting session');
-    initAudioContext();
+    
+    // Initialize audio context and ensure it's resumed (critical for mobile)
+    await initAudioContext();
+    
     isActiveRef.current = true;
     sessionStartTimeRef.current = Date.now();
 
@@ -481,8 +484,8 @@ const Index = () => {
         }}
       />
       
-      {/* Glassmorphism card - LOCKED DIMENSIONS */}
-      <div className="glassmorphism-card relative z-10 w-[650px] max-w-[92vw] min-h-[580px] p-12 md:p-14 lg:p-16 box-border flex flex-col">
+      {/* Glassmorphism card - Portrait layout, responsive */}
+      <div className="glassmorphism-card relative z-10 w-[90vw] md:w-[440px] lg:w-[480px] min-h-[600px] md:min-h-[640px] p-8 md:p-10 lg:p-12 box-border flex flex-col">
         {/* Mute Toggle */}
         <button
           onClick={toggleMute}
