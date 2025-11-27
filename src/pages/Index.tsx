@@ -8,6 +8,14 @@ import { useAudioManager } from "@/hooks/useAudioManager";
 type BreathingPhase = "welcome" | "intro" | "inhale" | "hold-full" | "exhale" | "hold-empty";
 type Stage = "idle" | "welcome" | "intro" | "breathing";
 
+// TypeScript declaration for Google Analytics
+declare global {
+  interface Window {
+    gtag: (command: string, ...args: any[]) => void;
+    dataLayer: any[];
+  }
+}
+
 const Index = () => {
   const { isLoading, loadError, playAudio, playAudioNonBlocking, stopAllAudio, initAudioContext } = useAudioManager();
   const [stage, setStage] = useState<Stage>("idle");
@@ -21,6 +29,7 @@ const Index = () => {
   
   const isActiveRef = useRef(false);
   const timeoutsRef = useRef<number[]>([]);
+  const sessionStartTimeRef = useRef<number>(0);
   const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
   const scheduleTimeout = (callback: () => void, delay: number) => {
@@ -42,6 +51,21 @@ const Index = () => {
     clearAllTimeouts();
     stopAllAudio();
 
+    // Track session duration
+    const sessionDuration = sessionStartTimeRef.current 
+      ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000)
+      : 0;
+
+    // Track breathing stopped with analytics
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'breathing_stopped', {
+        'event_category': 'engagement',
+        'event_label': 'user_stopped_breathing',
+        'value': cycleCount,
+        'session_duration': sessionDuration
+      });
+    }
+
     if (cycleCount > 0) {
       setShowCompletion(true);
     }
@@ -50,6 +74,7 @@ const Index = () => {
     setPhase("inhale");
     setScale(0.5);
     setCurrentCount(0);
+    sessionStartTimeRef.current = 0;
   };
 
   async function playCount(key: "one" | "two" | "three" | "four", value: number) {
@@ -154,6 +179,16 @@ const Index = () => {
 
     setCycleCount(cycleNumber);
     console.log(`Completed cycle ${cycleNumber}`);
+    
+    // Track cycle completion
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'cycle_completed', {
+        'event_category': 'progress',
+        'event_label': `cycle_${cycleNumber}`,
+        'value': cycleNumber
+      });
+    }
+    
     await sleep(500);
   }
 
@@ -197,6 +232,16 @@ const Index = () => {
 
     setCycleCount(cycleNumber);
     console.log(`Completed cycle ${cycleNumber}`);
+    
+    // Track cycle completion
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'cycle_completed', {
+        'event_category': 'progress',
+        'event_label': `cycle_${cycleNumber}`,
+        'value': cycleNumber
+      });
+    }
+    
     await sleep(500);
   }
 
@@ -208,6 +253,15 @@ const Index = () => {
       setStage("welcome");
       setPhase("welcome");
       setScale(0.6);
+      
+      // Track welcome played
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'welcome_played', {
+          'event_category': 'onboarding',
+          'event_label': 'welcome_message'
+        });
+      }
+      
       await playAudio("welcomeMessage");
       if (!isActiveRef.current) return;
       console.log('WelcomeMessage finished');
@@ -217,6 +271,15 @@ const Index = () => {
       setStage("intro");
       setPhase("intro");
       setScale(0.5);
+      
+      // Track explanation played
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'explanation_played', {
+          'event_category': 'onboarding',
+          'event_label': 'box_breathing_explanation'
+        });
+      }
+      
       await playAudio("boxBreathingExplanation");
       if (!isActiveRef.current) return;
       console.log('BoxBreathingExplanation finished');
@@ -264,6 +327,16 @@ const Index = () => {
     console.log('Starting session');
     initAudioContext();
     isActiveRef.current = true;
+    sessionStartTimeRef.current = Date.now();
+
+    // Track breathing started
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'breathing_started', {
+        'event_category': 'engagement',
+        'event_label': 'user_started_breathing',
+        'is_first_time': !hasPlayedWelcome
+      });
+    }
 
     if (!hasPlayedWelcome) {
       runBreathingSession(true);
@@ -285,6 +358,15 @@ const Index = () => {
   };
 
   const handleTap = () => {
+    // Track circle clicked
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'circle_clicked', {
+        'event_category': 'interaction',
+        'event_label': 'breathing_circle',
+        'action': stage === "idle" ? 'start' : 'stop'
+      });
+    }
+
     if (stage === "idle") {
       handleStart();
     } else {

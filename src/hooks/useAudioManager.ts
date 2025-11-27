@@ -61,8 +61,18 @@ export const useAudioManager = () => {
       });
 
       audio.addEventListener('error', () => {
-        setLoadError(`Failed to load ${key} audio file`);
+        const errorMessage = `Failed to load ${key} audio file`;
+        setLoadError(errorMessage);
         setIsLoading(false);
+        
+        // Track audio error
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'audio_error', {
+            'event_category': 'error',
+            'event_label': key,
+            'error_message': errorMessage
+          });
+        }
       });
 
       audioFiles[key as keyof AudioFiles] = audio;
