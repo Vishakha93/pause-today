@@ -22,6 +22,23 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
     setShowRipples(isActive);
   }, [isActive]);
 
+  // Dynamic orb gradient that complements the background
+  const getOrbGradient = () => {
+    // Cycle through complementary colors based on phase
+    switch (phase) {
+      case "inhale":
+        return 'radial-gradient(circle at 35% 35%, hsl(210, 85%, 70%) 0%, hsl(210, 80%, 60%) 40%, hsl(260, 70%, 65%) 100%)';
+      case "hold-full":
+        return 'radial-gradient(circle at 35% 35%, hsl(260, 80%, 75%) 0%, hsl(260, 70%, 65%) 40%, hsl(280, 65%, 70%) 100%)';
+      case "exhale":
+        return 'radial-gradient(circle at 35% 35%, hsl(200, 75%, 65%) 0%, hsl(210, 70%, 55%) 40%, hsl(220, 65%, 60%) 100%)';
+      case "hold-empty":
+        return 'radial-gradient(circle at 35% 35%, hsl(220, 70%, 60%) 0%, hsl(230, 65%, 55%) 40%, hsl(240, 60%, 60%) 100%)';
+      default:
+        return 'radial-gradient(circle at 35% 35%, hsl(210, 80%, 65%) 0%, hsl(210, 75%, 55%) 40%, hsl(260, 65%, 60%) 100%)';
+    }
+  };
+
   const getPhaseText = () => {
     switch (phase) {
       case "welcome":
@@ -101,13 +118,13 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
           }}
         />
         
-        {/* Main breathing circle with enhanced styling */}
+        {/* Main breathing circle with enhanced styling and dynamic colors */}
         <div 
           className="relative w-full h-full rounded-full flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-[1.05] group-hover:brightness-110"
           style={{
-            background: 'radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.85) 0%, hsl(var(--primary) / 0.7) 40%, hsl(var(--secondary) / 0.65) 100%)',
+            background: getOrbGradient(),
             transform: `scale(${displayScale})`,
-            transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease`,
+            transition: `transform ${getTransitionDuration()} cubic-bezier(0.4, 0, 0.2, 1), background 4s ease-in-out, filter 0.3s ease`,
             boxShadow: isActive 
               ? `0 25px 70px rgba(0,0,0,0.6), 0 0 ${80 * displayScale}px hsl(var(--primary) / 0.6), 0 0 ${120 * displayScale}px hsl(var(--secondary) / 0.35), inset 0 0 50px hsl(var(--primary) / 0.15)`
               : `0 20px 60px rgba(0,0,0,0.5), 0 0 ${60 * displayScale}px hsl(var(--primary) / 0.45), 0 0 ${90 * displayScale}px hsl(var(--secondary) / 0.25), inset 0 0 40px hsl(var(--primary) / 0.1)`,
