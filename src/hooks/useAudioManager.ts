@@ -61,18 +61,8 @@ export const useAudioManager = () => {
       });
 
       audio.addEventListener('error', () => {
-        const errorMessage = `Failed to load ${key} audio file`;
-        setLoadError(errorMessage);
+        setLoadError(`Failed to load ${key} audio file`);
         setIsLoading(false);
-        
-        // Track audio error
-        if (typeof window !== 'undefined' && (window as any).gtag) {
-          (window as any).gtag('event', 'audio_error', {
-            'event_category': 'error',
-            'event_label': key,
-            'error_message': errorMessage
-          });
-        }
       });
 
       audioFiles[key as keyof AudioFiles] = audio;
@@ -139,25 +129,22 @@ export const useAudioManager = () => {
 
   const playAudioNonBlocking = useCallback((audioKey: keyof AudioFiles) => {
     initAudioContext();
-    
-    // Get the source path from the original audio element
-    const originalAudio = audioFilesRef.current?.[audioKey];
-    if (!originalAudio) {
+    const audio = audioFilesRef.current?.[audioKey];
+
+    if (!audio) {
       console.warn(`Audio ${audioKey} not loaded`);
       return;
     }
 
-    // Create a NEW audio instance each time to avoid interruption errors
-    const audio = new Audio(originalAudio.src);
-    audio.volume = 1.0;
-    
+    // Fire-and-forget playback: allow overlapping clips (e.g. cues + phase audio)
+    audio.currentTime = 0;
     audio
       .play()
       .then(() => {
         console.log(`Playing (non-blocking) ${audioKey}`);
       })
       .catch((err) => {
-        console.warn(`Audio playback issue: ${err.message}`);
+        console.error("Audio play error (non-blocking):", err);
       });
   }, [initAudioContext]);
 
