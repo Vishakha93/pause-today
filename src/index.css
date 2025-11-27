@@ -94,10 +94,33 @@ All colors MUST be HSL.
   
   @keyframes wave {
     0%, 100% {
-      transform: translateY(0) scale(1);
+      transform: scale(1) rotate(0deg);
     }
     50% {
-      transform: translateY(-10px) scale(1.05);
+      transform: scale(1.1) rotate(5deg);
+    }
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0) translateX(0);
+      opacity: 0.1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+    100% {
+      transform: translateY(-100vh) translateX(20px);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 200%;
+    }
+    100% {
+      background-position: -200% -200%;
     }
   }
 }
