@@ -26,8 +26,9 @@ export const useAudioManager = () => {
       audioContextRef.current = new AudioContextClass();
     }
     if (audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume();
+      return audioContextRef.current.resume();
     }
+    return Promise.resolve();
   }, []);
 
   useEffect(() => {
@@ -133,12 +134,12 @@ export const useAudioManager = () => {
 
     if (!audio) {
       console.warn(`Audio ${audioKey} not loaded`);
-      return;
+      return Promise.resolve();
     }
 
-    // Fire-and-forget playback: allow overlapping clips (e.g. cues + phase audio)
+    // Fire-and-forget but return promise for mobile compatibility
     audio.currentTime = 0;
-    audio
+    return audio
       .play()
       .then(() => {
         console.log(`Playing (non-blocking) ${audioKey}`);
