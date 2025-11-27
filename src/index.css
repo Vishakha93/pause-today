@@ -69,6 +69,7 @@ All colors MUST be HSL.
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     animation: gradientShift 60s ease-in-out infinite;
     overflow-x: hidden;
+    position: relative;
   }
 }
 
@@ -94,28 +95,46 @@ All colors MUST be HSL.
     transform: scale(0.7);
   }
   
-  /* Animated gradient background */
+  /* Animated gradient background - enhanced color shifts */
   @keyframes gradientShift {
     0% { background: linear-gradient(135deg, hsl(220, 70%, 15%) 0%, hsl(260, 60%, 25%) 50%, hsl(220, 70%, 20%) 100%); }
-    33% { background: linear-gradient(135deg, hsl(260, 60%, 25%) 0%, hsl(280, 60%, 30%) 50%, hsl(260, 60%, 25%) 100%); }
-    66% { background: linear-gradient(135deg, hsl(200, 70%, 20%) 0%, hsl(220, 70%, 25%) 50%, hsl(195, 70%, 25%) 100%); }
+    25% { background: linear-gradient(135deg, hsl(260, 65%, 22%) 0%, hsl(280, 60%, 28%) 50%, hsl(260, 60%, 23%) 100%); }
+    50% { background: linear-gradient(135deg, hsl(280, 60%, 25%) 0%, hsl(270, 65%, 30%) 50%, hsl(260, 60%, 28%) 100%); }
+    75% { background: linear-gradient(135deg, hsl(200, 70%, 18%) 0%, hsl(220, 70%, 23%) 50%, hsl(195, 70%, 22%) 100%); }
     100% { background: linear-gradient(135deg, hsl(220, 70%, 15%) 0%, hsl(260, 60%, 25%) 50%, hsl(220, 70%, 20%) 100%); }
   }
   
-  /* Floating particles */
+  /* Floating particles - enhanced with glow */
   @keyframes floatUp {
     0% {
       transform: translateY(0) translateX(0);
       opacity: 0;
     }
     10% {
-      opacity: 0.2;
+      opacity: 0.3;
     }
     90% {
-      opacity: 0.1;
+      opacity: 0.15;
     }
     100% {
-      transform: translateY(-100vh) translateX(20px);
+      transform: translateY(-100vh) translateX(30px);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes floatUpSlow {
+    0% {
+      transform: translateY(0) translateX(0) scale(0.8);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.25;
+    }
+    90% {
+      opacity: 0.12;
+    }
+    100% {
+      transform: translateY(-100vh) translateX(-20px) scale(1.2);
       opacity: 0;
     }
   }
@@ -129,23 +148,73 @@ All colors MUST be HSL.
     }
   }
   
-  /* Subtle idle pulse */
+  /* Subtle idle pulse - enhanced */
   @keyframes idlePulse {
     0%, 100% {
       transform: scale(1);
+      opacity: 0.9;
     }
     50% {
-      transform: scale(1.02);
+      transform: scale(1.03);
+      opacity: 1;
     }
   }
   
-  /* Orb drift */
+  /* Ripple effect for breathing circle */
+  @keyframes ripple {
+    0% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes rippleSlow {
+    0% {
+      transform: scale(1);
+      opacity: 0.4;
+    }
+    100% {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+  
+  /* Orb drift - enhanced movement */
   @keyframes orbDrift {
     0%, 100% {
-      transform: translate(0, 0);
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(40px, -30px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.95);
+    }
+  }
+  
+  @keyframes orbDriftAlt {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(-30px, 25px) scale(1.05);
+    }
+    66% {
+      transform: translate(35px, -15px) scale(0.9);
+    }
+  }
+  
+  /* Pulse glow effect */
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(100, 150, 255, 0.3);
     }
     50% {
-      transform: translate(30px, -20px);
+      box-shadow: 0 0 40px rgba(100, 150, 255, 0.6);
     }
   }
   
@@ -182,20 +251,73 @@ All colors MUST be HSL.
   }
   
   .glassmorphism-button {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 50px;
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(100, 150, 255, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .glassmorphism-button:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 30px rgba(100, 150, 255, 0.4);
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 35px rgba(100, 150, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.35);
   }
   
   .glassmorphism-button:active {
-    transform: scale(0.98);
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 0 4px 20px rgba(100, 150, 255, 0.3);
+  }
+  
+  /* Vignette overlay */
+  .vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+    z-index: 1;
+  }
+  
+  /* Keyboard shortcut badge */
+  .keyboard-badge {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+  }
+  
+  .keyboard-badge:hover {
+    opacity: 1;
+  }
+  
+  /* Breathing circle container enhancements */
+  .breathing-circle-container {
+    position: relative;
+  }
+  
+  .breathing-circle-container:hover .breathing-circle {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

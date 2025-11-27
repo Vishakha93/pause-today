@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { BreathingCircle } from "@/components/BreathingCircle";
 import { CompletionDialog } from "@/components/CompletionDialog";
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, Play, Square, Loader2 } from "lucide-react";
+import { Volume2, VolumeX, Play, Square, Loader2, Command } from "lucide-react";
 import { useAudioManager } from "@/hooks/useAudioManager";
 
 type BreathingPhase = "welcome" | "intro" | "inhale" | "hold-full" | "exhale" | "hold-empty";
@@ -396,48 +396,69 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden">
-      {/* Floating particles */}
-      {Array.from({ length: 25 }).map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full bg-white/20 pointer-events-none"
-          style={{
-            width: `${Math.random() * 4 + 2}px`,
-            height: `${Math.random() * 4 + 2}px`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animation: `floatUp ${20 + Math.random() * 20}s linear infinite`,
-            animationDelay: `${Math.random() * 10}s`,
-            opacity: Math.random() * 0.15 + 0.1,
-          }}
-        />
-      ))}
+      {/* Vignette overlay */}
+      <div className="vignette" />
+      
+      {/* Enhanced floating particles with varied animations */}
+      {Array.from({ length: 30 }).map((_, i) => {
+        const isLarge = i % 5 === 0;
+        const size = isLarge ? Math.random() * 6 + 4 : Math.random() * 4 + 2;
+        const animationType = i % 2 === 0 ? 'floatUp' : 'floatUpSlow';
+        const color = i % 3 === 0 ? 'bg-blue-300/30' : i % 3 === 1 ? 'bg-purple-300/30' : 'bg-white/25';
+        
+        return (
+          <div
+            key={i}
+            className={`absolute rounded-full ${color} pointer-events-none`}
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `${animationType} ${20 + Math.random() * 25}s linear infinite`,
+              animationDelay: `${Math.random() * 15}s`,
+              filter: 'blur(1px)',
+              boxShadow: isLarge ? '0 0 10px rgba(255, 255, 255, 0.3)' : 'none',
+            }}
+          />
+        );
+      })}
 
-      {/* Background glow orbs */}
+      {/* Enhanced background glow orbs with varied sizes and movements */}
       <div 
-        className="absolute w-[250px] h-[250px] rounded-full blur-[100px] opacity-[0.08] bg-primary pointer-events-none"
+        className="absolute w-[280px] h-[280px] rounded-full blur-[120px] opacity-[0.12] bg-primary pointer-events-none"
         style={{
-          top: '20%',
-          left: '15%',
-          animation: 'orbDrift 40s ease-in-out infinite',
-        }}
-      />
-      <div 
-        className="absolute w-[250px] h-[250px] rounded-full blur-[100px] opacity-[0.06] bg-secondary pointer-events-none"
-        style={{
-          bottom: '15%',
-          right: '20%',
-          animation: 'orbDrift 35s ease-in-out infinite',
-          animationDelay: '10s',
-        }}
-      />
-      <div 
-        className="absolute w-[250px] h-[250px] rounded-full blur-[100px] opacity-[0.05] bg-accent pointer-events-none"
-        style={{
-          top: '60%',
-          left: '70%',
+          top: '15%',
+          left: '10%',
           animation: 'orbDrift 45s ease-in-out infinite',
-          animationDelay: '20s',
+        }}
+      />
+      <div 
+        className="absolute w-[300px] h-[300px] rounded-full blur-[130px] opacity-[0.1] bg-secondary pointer-events-none"
+        style={{
+          bottom: '10%',
+          right: '15%',
+          animation: 'orbDriftAlt 50s ease-in-out infinite',
+          animationDelay: '15s',
+        }}
+      />
+      <div 
+        className="absolute w-[260px] h-[260px] rounded-full blur-[110px] opacity-[0.08] bg-accent pointer-events-none"
+        style={{
+          top: '55%',
+          left: '75%',
+          animation: 'orbDrift 55s ease-in-out infinite',
+          animationDelay: '25s',
+        }}
+      />
+      <div 
+        className="absolute w-[220px] h-[220px] rounded-full blur-[100px] opacity-[0.09] pointer-events-none"
+        style={{
+          top: '40%',
+          right: '5%',
+          background: 'radial-gradient(circle, hsl(200, 80%, 60%), transparent)',
+          animation: 'orbDriftAlt 42s ease-in-out infinite',
+          animationDelay: '8s',
         }}
       />
       
@@ -457,17 +478,22 @@ const Index = () => {
         </button>
 
         {/* Header */}
-        <div className="text-center space-y-3 mb-8">
-          <h1 className="text-4xl md:text-5xl lg:text-[56px] font-light tracking-[2px] text-foreground" style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}>
+        <div className="text-center space-y-4 mb-10">
+          <h1 
+            className="text-5xl md:text-6xl lg:text-[64px] font-extralight tracking-[3px] text-foreground" 
+            style={{ 
+              textShadow: '0 2px 25px rgba(255,255,255,0.35), 0 4px 40px rgba(100,150,255,0.15)' 
+            }}
+          >
             Pause
           </h1>
-          <p className="text-foreground/90 text-base md:text-lg tracking-[0.5px]">
+          <p className="text-foreground/90 text-base md:text-lg tracking-[1px] font-light opacity-90">
             Find your calm, one breath at a time
           </p>
         </div>
 
         {/* Breathing Circle */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center breathing-circle-container">
           <BreathingCircle 
             phase={phase} 
             isActive={stage !== "idle"} 
@@ -491,25 +517,33 @@ const Index = () => {
           <button
             onClick={stage === "idle" ? handleStart : handleStop}
             disabled={isLoading}
-            className="glassmorphism-button px-9 py-3.5 rounded-full font-medium text-base tracking-wide shadow-[0_4px_20px_rgba(100,150,255,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="glassmorphism-button px-10 py-4 rounded-full font-medium text-base tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
           >
             {isLoading ? (
               <>
-                <Loader2 className="inline mr-2 h-5 w-5 animate-spin" />
-                Loading...
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Loading...</span>
               </>
             ) : stage === "idle" ? (
               <>
-                <Play className="inline mr-2 h-5 w-5" />
-                Start
+                <Play className="h-5 w-5 fill-current" />
+                <span>Start</span>
               </>
             ) : (
               <>
-                <Square className="inline mr-2 h-5 w-5" />
-                Stop
+                <Square className="h-5 w-5 fill-current" />
+                <span>Stop</span>
               </>
             )}
           </button>
+          
+          {/* Keyboard shortcut hint - desktop only */}
+          <div className="hidden md:block mt-4">
+            <div className="keyboard-badge text-foreground/70 flex items-center gap-2">
+              <Command className="h-3.5 w-3.5" />
+              <span>Press Space to {stage === "idle" ? "start" : "stop"}</span>
+            </div>
+          </div>
         </div>
 
         {/* Completion Dialog */}
