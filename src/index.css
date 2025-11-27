@@ -47,9 +47,10 @@ All colors MUST be HSL.
 
     --radius: 1rem;
     
-    /* Animation timings */
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-breathing: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Animation timings - elite easing curves */
+    --transition-smooth: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-breathing: all 4s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    --transition-ultra-smooth: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
     
     /* Circle glow effect */
     --glow-primary: 0 0 40px hsl(210 80% 65% / 0.5);
@@ -70,6 +71,9 @@ All colors MUST be HSL.
     animation: gradientShift 60s ease-in-out infinite;
     overflow-x: hidden;
     position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 }
 
@@ -173,11 +177,25 @@ All colors MUST be HSL.
   @keyframes idlePulse {
     0%, 100% {
       transform: scale(1);
-      opacity: 0.9;
+      opacity: 0.92;
+      filter: brightness(1);
     }
     50% {
-      transform: scale(1.03);
+      transform: scale(1.02);
       opacity: 1;
+      filter: brightness(1.05);
+    }
+  }
+  
+  /* Fade in and scale animation */
+  @keyframes fadeInScale {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
     }
   }
   
@@ -240,15 +258,17 @@ All colors MUST be HSL.
   }
   
   .glassmorphism-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 40px;
     box-shadow: 
-      0 8px 32px 0 rgba(0, 0, 0, 0.37),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+      0 12px 48px 0 rgba(0, 0, 0, 0.45),
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+      0 2px 16px 0 rgba(255, 255, 255, 0.08) inset;
     position: relative;
+    transition: var(--transition-ultra-smooth);
     
     /* Portrait orientation - taller than wide */
     width: 550px;
@@ -256,6 +276,13 @@ All colors MUST be HSL.
     min-height: 700px;
     padding: 64px 48px;
     margin: auto;
+  }
+  
+  .glassmorphism-card:hover {
+    box-shadow: 
+      0 16px 64px 0 rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+      0 2px 20px 0 rgba(255, 255, 255, 0.1) inset;
   }
   
   @media (max-width: 768px) {
@@ -296,25 +323,49 @@ All colors MUST be HSL.
   }
   
   .glassmorphism-button {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.12) 100%);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50px;
-    box-shadow: 0 4px 20px rgba(100, 150, 255, 0.25);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      0 6px 24px rgba(100, 150, 255, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glassmorphism-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .glassmorphism-button:hover::before {
+    left: 100%;
   }
   
   .glassmorphism-button:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 8px 35px rgba(100, 150, 255, 0.5);
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 
+      0 12px 48px rgba(100, 150, 255, 0.6),
+      0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.18) 100%);
+    border-color: rgba(255, 255, 255, 0.4);
   }
   
   .glassmorphism-button:active {
-    transform: translateY(-1px) scale(0.98);
-    box-shadow: 0 4px 20px rgba(100, 150, 255, 0.3);
+    transform: translateY(-2px) scale(0.98);
+    box-shadow: 
+      0 6px 28px rgba(100, 150, 255, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+    transition: all 0.1s ease;
   }
   
   /* Vignette overlay */
