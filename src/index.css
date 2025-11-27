@@ -67,6 +67,8 @@ All colors MUST be HSL.
     background: var(--gradient-calm);
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    animation: gradientShift 60s ease-in-out infinite;
+    overflow-x: hidden;
   }
 }
 
@@ -92,6 +94,32 @@ All colors MUST be HSL.
     transform: scale(0.7);
   }
   
+  /* Animated gradient background */
+  @keyframes gradientShift {
+    0% { background: linear-gradient(135deg, hsl(220, 70%, 15%) 0%, hsl(260, 60%, 25%) 50%, hsl(220, 70%, 20%) 100%); }
+    33% { background: linear-gradient(135deg, hsl(260, 60%, 25%) 0%, hsl(280, 60%, 30%) 50%, hsl(260, 60%, 25%) 100%); }
+    66% { background: linear-gradient(135deg, hsl(200, 70%, 20%) 0%, hsl(220, 70%, 25%) 50%, hsl(195, 70%, 25%) 100%); }
+    100% { background: linear-gradient(135deg, hsl(220, 70%, 15%) 0%, hsl(260, 60%, 25%) 50%, hsl(220, 70%, 20%) 100%); }
+  }
+  
+  /* Floating particles */
+  @keyframes floatUp {
+    0% {
+      transform: translateY(0) translateX(0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.2;
+    }
+    90% {
+      opacity: 0.1;
+    }
+    100% {
+      transform: translateY(-100vh) translateX(20px);
+      opacity: 0;
+    }
+  }
+  
   @keyframes wave {
     0%, 100% {
       transform: translateY(0) scale(1);
@@ -99,5 +127,49 @@ All colors MUST be HSL.
     50% {
       transform: translateY(-10px) scale(1.05);
     }
+  }
+  
+  /* Subtle idle pulse */
+  @keyframes idlePulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+  }
+  
+  /* Orb drift */
+  @keyframes orbDrift {
+    0%, 100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(30px, -20px);
+    }
+  }
+  
+  .glassmorphism-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  
+  .glassmorphism-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .glassmorphism-button:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 30px rgba(100, 150, 255, 0.4);
+  }
+  
+  .glassmorphism-button:active {
+    transform: scale(0.98);
   }
 }
