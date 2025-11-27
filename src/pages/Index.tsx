@@ -21,7 +21,15 @@ const Index = () => {
   
   const isActiveRef = useRef(false);
   const timeoutsRef = useRef<number[]>([]);
+  const sessionStartTimeRef = useRef<number | null>(null);
   const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+  // Google Analytics tracking helper
+  const trackEvent = (eventName: string, eventParams?: Record<string, any>) => {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', eventName, eventParams);
+    }
+  };
 
   const scheduleTimeout = (callback: () => void, delay: number) => {
     const id = window.setTimeout(() => {
@@ -41,6 +49,18 @@ const Index = () => {
     isActiveRef.current = false;
     clearAllTimeouts();
     stopAllAudio();
+
+    // Track session end
+    if (sessionStartTimeRef.current) {
+      const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+      trackEvent('breathing_stopped', {
+        event_category: 'engagement',
+        event_label: 'session_end',
+        cycles_completed: cycleCount,
+        duration_seconds: sessionDuration
+      });
+      sessionStartTimeRef.current = null;
+    }
 
     if (cycleCount > 0) {
       setShowCompletion(true);
@@ -154,6 +174,14 @@ const Index = () => {
 
     setCycleCount(cycleNumber);
     console.log(`Completed cycle ${cycleNumber}`);
+    
+    // Track cycle completion
+    trackEvent('cycle_completed', {
+      event_category: 'progress',
+      event_label: 'cycle_complete',
+      cycle_number: cycleNumber
+    });
+    
     await sleep(500);
   }
 
@@ -197,6 +225,14 @@ const Index = () => {
 
     setCycleCount(cycleNumber);
     console.log(`Completed cycle ${cycleNumber}`);
+    
+    // Track cycle completion
+    trackEvent('cycle_completed', {
+      event_category: 'progress',
+      event_label: 'cycle_complete',
+      cycle_number: cycleNumber
+    });
+    
     await sleep(500);
   }
 
@@ -264,6 +300,13 @@ const Index = () => {
     console.log('Starting session');
     initAudioContext();
     isActiveRef.current = true;
+    sessionStartTimeRef.current = Date.now();
+
+    // Track session start
+    trackEvent('breathing_started', {
+      event_category: 'engagement',
+      event_label: 'session_start'
+    });
 
     if (!hasPlayedWelcome) {
       runBreathingSession(true);
@@ -285,6 +328,13 @@ const Index = () => {
   };
 
   const handleTap = () => {
+    // Track circle interaction
+    trackEvent('circle_clicked', {
+      event_category: 'interaction',
+      event_label: 'breathing_circle',
+      action: stage === "idle" ? 'start' : 'stop'
+    });
+
     if (stage === "idle") {
       handleStart();
     } else {
@@ -306,10 +356,25 @@ const Index = () => {
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault();
         e.stopPropagation();
+        
+        // Track keyboard shortcut
+        trackEvent('keyboard_shortcut', {
+          event_category: 'interaction',
+          event_label: 'spacebar',
+          action: stage === "idle" ? 'start' : 'stop'
+        });
+        
         handleTap();
       }
       
       if (e.code === 'Escape' && stage !== "idle") {
+        // Track escape key
+        trackEvent('keyboard_shortcut', {
+          event_category: 'interaction',
+          event_label: 'escape',
+          action: 'stop'
+        });
+        
         handleStop();
       }
     };
@@ -377,7 +442,7 @@ const Index = () => {
       />
       
       {/* Glassmorphism card - LOCKED DIMENSIONS */}
-      <div className="glassmorphism-card relative z-10 w-[600px] max-w-[90vw] min-h-[550px] p-8 md:p-12 lg:p-16 box-border flex flex-col">
+      <div className="glassmorphism-card relative z-10 w-[650px] max-w-[92vw] min-h-[580px] p-12 md:p-14 lg:p-16 box-border flex flex-col">
         {/* Mute Toggle */}
         <button
           onClick={toggleMute}
@@ -394,7 +459,7 @@ const Index = () => {
         {/* Header */}
         <div className="text-center space-y-3 mb-8">
           <h1 className="text-4xl md:text-5xl lg:text-[56px] font-light tracking-[2px] text-foreground" style={{ textShadow: '0 2px 20px rgba(255,255,255,0.2)' }}>
-            Box Breathing
+            Pause
           </h1>
           <p className="text-foreground/90 text-base md:text-lg tracking-[0.5px]">
             Find your calm, one breath at a time
