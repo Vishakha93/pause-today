@@ -44,14 +44,23 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-8">
-      <h2 className="text-2xl md:text-3xl font-light tracking-wide text-foreground/90 min-h-[40px]">
+    <div className="flex flex-col items-center justify-center gap-6 md:gap-8 lg:gap-10">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light tracking-wide text-foreground/90 min-h-[40px] md:min-h-[50px] lg:min-h-[60px]">
         {isActive ? getPhaseText() : "Ready to Begin"}
       </h2>
       
       <div 
-        className="relative flex items-center justify-center w-full max-w-[280px] md:max-w-[320px] aspect-square cursor-pointer group"
+        className="relative flex items-center justify-center w-full max-w-[280px] sm:max-w-[320px] md:max-w-[400px] lg:max-w-[500px] aspect-square cursor-pointer group"
         onClick={onTap}
+        role="button"
+        aria-label={isActive ? "Stop breathing exercise" : "Start breathing exercise"}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onTap();
+          }
+        }}
       >
         {/* Wave ripples */}
         <div 
@@ -95,12 +104,12 @@ export const BreathingCircle = ({ phase, isActive, onTap, scale, currentCount }:
           {/* Inner circle */}
           <div className="relative w-[85%] h-[85%] rounded-full bg-background/5 backdrop-blur-sm border border-foreground/5 flex items-center justify-center">
             {!isActive && (
-              <span className="text-sm text-foreground/60 group-hover:text-foreground/80 transition-colors">
+              <span className="text-xs sm:text-sm md:text-base text-foreground/60 group-hover:text-foreground/90 group-hover:scale-105 transition-all duration-200">
                 Tap to begin
               </span>
             )}
             {isActive && currentCount && currentCount > 0 && (
-              <span className="text-4xl font-light text-foreground/80 animate-fade-in">
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-foreground/80 animate-fade-in">
                 {currentCount}
               </span>
             )}

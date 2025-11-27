@@ -293,12 +293,25 @@ const Index = () => {
   };
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        handleTap();
+      } else if (e.key === 'Escape' && stage !== "idle") {
+        e.preventDefault();
+        handleStop();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
+      window.removeEventListener('keydown', handleKeyDown);
       isActiveRef.current = false;
       clearAllTimeouts();
       stopAllAudio();
     };
-  }, []);
+  }, [stage]);
 
   if (loadError) {
     return (
@@ -312,20 +325,25 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden">
       {/* Ambient background circles */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute top-1/4 left-1/4 w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       
-      <div className="relative z-10 w-full max-w-md space-y-12">
+      <div className="relative z-10 w-full max-w-md lg:max-w-2xl space-y-8 sm:space-y-10 md:space-y-12 lg:space-y-16">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-light tracking-wider text-foreground">
+        <div className="text-center space-y-2 md:space-y-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-wider text-foreground">
             Box Breathing
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base">
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
             Find your calm, one breath at a time
           </p>
+          {stage === "idle" && !isLoading && (
+            <p className="text-xs sm:text-sm text-muted-foreground/70 mt-2 hidden md:block">
+              Press Space to start
+            </p>
+          )}
         </div>
 
         {/* Breathing Circle */}
@@ -338,12 +356,12 @@ const Index = () => {
         />
 
         {/* Controls */}
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-4 sm:gap-5 md:gap-6">
           {/* Cycle Counter */}
           {cycleCount > 0 && stage === "breathing" && (
             <div className="text-center">
-              <p className="text-muted-foreground text-sm">Cycle</p>
-              <p className="text-3xl font-light text-foreground">{cycleCount}</p>
+              <p className="text-muted-foreground text-xs sm:text-sm md:text-base">Cycle</p>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-light text-foreground">{cycleCount}</p>
             </div>
           )}
 
@@ -352,22 +370,22 @@ const Index = () => {
             onClick={stage === "idle" ? handleStart : handleStop}
             size="lg"
             disabled={isLoading}
-            className="w-40 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-lg shadow-lg hover:shadow-xl transition-all"
+            className="w-36 h-12 sm:w-40 sm:h-14 md:w-48 md:h-16 lg:w-52 lg:h-16 rounded-full bg-primary hover:bg-primary/90 hover:scale-105 active:scale-95 text-primary-foreground font-medium text-base sm:text-lg md:text-xl shadow-lg hover:shadow-xl transition-all duration-200 min-h-[44px]"
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Loading...
+                <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                <span className="text-sm sm:text-base md:text-lg">Loading...</span>
               </>
             ) : stage === "idle" ? (
               <>
-                <Play className="mr-2 h-5 w-5" />
-                Start
+                <Play className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-sm sm:text-base md:text-lg">Start</span>
               </>
             ) : (
               <>
-                <Square className="mr-2 h-5 w-5" />
-                Stop
+                <Square className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-sm sm:text-base md:text-lg">Stop</span>
               </>
             )}
           </Button>
@@ -376,13 +394,13 @@ const Index = () => {
         {/* Mute Toggle */}
         <button
           onClick={toggleMute}
-          className="absolute top-6 right-6 p-3 rounded-full bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors"
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2.5 sm:p-3 md:p-3.5 rounded-full bg-card/50 backdrop-blur-sm hover:bg-card/70 hover:scale-110 active:scale-95 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
           aria-label={isMuted ? "Unmute" : "Mute"}
         >
           {isMuted ? (
-            <VolumeX className="h-5 w-5 text-muted-foreground" />
+            <VolumeX className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-muted-foreground" />
           ) : (
-            <Volume2 className="h-5 w-5 text-foreground" />
+            <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-foreground" />
           )}
         </button>
 
