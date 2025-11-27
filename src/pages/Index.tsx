@@ -399,8 +399,27 @@ const Index = () => {
       {/* Vignette overlay */}
       <div className="vignette" />
       
+      {/* Golden sparkles - outside the card */}
+      {Array.from({ length: 40 }).map((_, i) => (
+        <div
+          key={`sparkle-${i}`}
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 3 + 1}px`,
+            height: `${Math.random() * 3 + 1}px`,
+            background: 'hsl(45, 100%, 70%)',
+            boxShadow: '0 0 4px hsl(45, 100%, 70%)',
+            opacity: 0,
+            animation: `twinkle ${Math.random() * 4 + 3}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 5}s`,
+          }}
+        />
+      ))}
+      
       {/* Enhanced floating particles with varied animations */}
-      {Array.from({ length: 30 }).map((_, i) => {
+      {Array.from({ length: 25 }).map((_, i) => {
         const isLarge = i % 5 === 0;
         const size = isLarge ? Math.random() * 6 + 4 : Math.random() * 4 + 2;
         const animationType = i % 2 === 0 ? 'floatUp' : 'floatUpSlow';
@@ -408,7 +427,7 @@ const Index = () => {
         
         return (
           <div
-            key={i}
+            key={`particle-${i}`}
             className={`absolute rounded-full ${color} pointer-events-none`}
             style={{
               width: `${size}px`,

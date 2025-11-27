@@ -95,13 +95,34 @@ All colors MUST be HSL.
     transform: scale(0.7);
   }
   
-  /* Animated gradient background - enhanced color shifts */
+  /* Animated gradient background - smooth color shifts */
   @keyframes gradientShift {
     0% { background: linear-gradient(135deg, hsl(220, 70%, 15%) 0%, hsl(260, 60%, 25%) 50%, hsl(220, 70%, 20%) 100%); }
     25% { background: linear-gradient(135deg, hsl(260, 65%, 22%) 0%, hsl(280, 60%, 28%) 50%, hsl(260, 60%, 23%) 100%); }
     50% { background: linear-gradient(135deg, hsl(280, 60%, 25%) 0%, hsl(270, 65%, 30%) 50%, hsl(260, 60%, 28%) 100%); }
     75% { background: linear-gradient(135deg, hsl(200, 70%, 18%) 0%, hsl(220, 70%, 23%) 50%, hsl(195, 70%, 22%) 100%); }
     100% { background: linear-gradient(135deg, hsl(220, 70%, 15%) 0%, hsl(260, 60%, 25%) 50%, hsl(220, 70%, 20%) 100%); }
+  }
+  
+  /* Golden sparkle animation */
+  @keyframes sparkle {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.2);
+    }
+  }
+  
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.8;
+    }
   }
   
   /* Floating particles - enhanced with glow */
@@ -228,6 +249,30 @@ All colors MUST be HSL.
       0 8px 32px 0 rgba(0, 0, 0, 0.37),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
     position: relative;
+    
+    /* Portrait orientation - taller than wide */
+    width: 550px;
+    max-width: 92vw;
+    min-height: 700px;
+    padding: 64px 48px;
+    margin: auto;
+  }
+  
+  @media (max-width: 768px) {
+    .glassmorphism-card {
+      padding: 48px 32px;
+      min-height: 650px;
+      border-radius: 24px;
+      width: 90vw;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .glassmorphism-card {
+      padding: 40px 24px;
+      min-height: 600px;
+      width: 95vw;
+    }
   }
   
   .glassmorphism-card::before {
