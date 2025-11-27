@@ -139,22 +139,25 @@ export const useAudioManager = () => {
 
   const playAudioNonBlocking = useCallback((audioKey: keyof AudioFiles) => {
     initAudioContext();
-    const audio = audioFilesRef.current?.[audioKey];
-
-    if (!audio) {
+    
+    // Get the source path from the original audio element
+    const originalAudio = audioFilesRef.current?.[audioKey];
+    if (!originalAudio) {
       console.warn(`Audio ${audioKey} not loaded`);
       return;
     }
 
-    // Fire-and-forget playback: allow overlapping clips (e.g. cues + phase audio)
-    audio.currentTime = 0;
+    // Create a NEW audio instance each time to avoid interruption errors
+    const audio = new Audio(originalAudio.src);
+    audio.volume = 1.0;
+    
     audio
       .play()
       .then(() => {
         console.log(`Playing (non-blocking) ${audioKey}`);
       })
       .catch((err) => {
-        console.error("Audio play error (non-blocking):", err);
+        console.warn(`Audio playback issue: ${err.message}`);
       });
   }, [initAudioContext]);
 
