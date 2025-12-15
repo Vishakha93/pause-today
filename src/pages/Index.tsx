@@ -9,7 +9,8 @@ type BreathingPhase = "welcome" | "intro" | "inhale" | "hold-full" | "exhale" | 
 type Stage = "idle" | "welcome" | "intro" | "breathing";
 
 const Index = () => {
-  const { isLoading, loadError, playAudio, playAudioNonBlocking, stopAllAudio, initAudioContext } = useAudioManager();
+  const { isLoading, loadError, playAudio, playAudioNonBlocking, stopAllAudio, prepareAudio, isMobile } = useAudioManager();
+  const [isPreparing, setIsPreparing] = useState(false);
   const [stage, setStage] = useState<Stage>("idle");
   const [phase, setPhase] = useState<BreathingPhase>("inhale");
   const [cycleCount, setCycleCount] = useState(0);
@@ -295,26 +296,36 @@ const Index = () => {
   }
 
   const handleStart = async () => {
-    if (isLoading || loadError) return;
+    if (isLoading || loadError || isPreparing) return;
 
     console.log('Starting session');
+    setIsPreparing(true);
     
-    // Initialize audio context and ensure it's resumed (critical for mobile)
-    await initAudioContext();
-    
-    isActiveRef.current = true;
-    sessionStartTimeRef.current = Date.now();
+    try {
+      // Prepare audio (critical for mobile - must be on user gesture)
+      await prepareAudio();
+      
+      // Small delay to ensure everything is ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      setIsPreparing(false);
+      isActiveRef.current = true;
+      sessionStartTimeRef.current = Date.now();
 
-    // Track session start
-    trackEvent('breathing_started', {
-      event_category: 'engagement',
-      event_label: 'session_start'
-    });
+      // Track session start
+      trackEvent('breathing_started', {
+        event_category: 'engagement',
+        event_label: 'session_start'
+      });
 
-    if (!hasPlayedWelcome) {
-      runBreathingSession(true);
-    } else {
-      runBreathingSession(false);
+      if (!hasPlayedWelcome) {
+        runBreathingSession(true);
+      } else {
+        runBreathingSession(false);
+      }
+    } catch (error) {
+      console.error('Error starting session:', error);
+      setIsPreparing(false);
     }
   };
 
@@ -554,16 +565,16 @@ const Index = () => {
           {/* Start/Stop Button */}
           <button
             onClick={stage === "idle" ? handleStart : handleStop}
-            disabled={isLoading}
+            disabled={isLoading || isPreparing}
             className="glassmorphism-button px-12 py-4 rounded-full font-light text-base tracking-[2px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 relative overflow-hidden group/btn"
             style={{
               textShadow: '0 1px 8px rgba(0, 0, 0, 0.2)',
             }}
           >
-            {isLoading ? (
+            {isLoading || isPreparing ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Loading...</span>
+                <span>{isPreparing ? 'Preparing...' : 'Loading...'}</span>
               </>
             ) : stage === "idle" ? (
               <>
