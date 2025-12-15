@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { BreathingCircle } from "@/components/BreathingCircle";
 import { CompletionDialog } from "@/components/CompletionDialog";
-import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, Play, Square, Loader2, Command } from "lucide-react";
+import { Volume2, VolumeX, Play, Square, Command } from "lucide-react";
 import { useAudioManager } from "@/hooks/useAudioManager";
 
 type BreathingPhase = "welcome" | "intro" | "inhale" | "hold-full" | "exhale" | "hold-empty";
 type Stage = "idle" | "welcome" | "intro" | "breathing";
 
 const Index = () => {
-  const { isLoading, loadError, playAudio, playAudioNonBlocking, stopAllAudio, initAudioContext } = useAudioManager();
+  const { playSound, playAndWait, stopAllAudio, initAudioContext, scheduleTimer, clearAllTimers } = useAudioManager();
   const [stage, setStage] = useState<Stage>("idle");
   const [phase, setPhase] = useState<BreathingPhase>("inhale");
   const [cycleCount, setCycleCount] = useState(0);
@@ -20,9 +19,8 @@ const Index = () => {
   const [scale, setScale] = useState(0.5);
   
   const isActiveRef = useRef(false);
-  const timeoutsRef = useRef<number[]>([]);
+  const cycleNumberRef = useRef(0);
   const sessionStartTimeRef = useRef<number | null>(null);
-  const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
   // Google Analytics tracking helper
   const trackEvent = (eventName: string, eventParams?: Record<string, any>) => {
@@ -31,26 +29,168 @@ const Index = () => {
     }
   };
 
-  const scheduleTimeout = (callback: () => void, delay: number) => {
-    const id = window.setTimeout(() => {
-      if (!isActiveRef.current) return;
-      callback();
-    }, delay);
-    timeoutsRef.current.push(id);
+  // BREATHING PHASES - Simple, no waiting for audio
+  const doInhale = (withCounting: boolean) => {
+    if (!isActiveRef.current) return;
+    console.log('INHALE, counting:', withCounting);
+    
+    setPhase("inhale");
+    setScale(1.0);
+    
+    if (!isMuted) {
+      playSound("breatheIn");
+      if (withCounting) {
+        scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
+        scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
+        scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
+        scheduleTimer(() => setCurrentCount(0), 3500);
+      }
+    }
+    
+    scheduleTimer(() => doHoldFull(withCounting), 4000);
   };
 
-  const clearAllTimeouts = () => {
-    timeoutsRef.current.forEach((id) => window.clearTimeout(id));
-    timeoutsRef.current = [];
+  const doHoldFull = (withCounting: boolean) => {
+    if (!isActiveRef.current) return;
+    console.log('HOLD FULL, counting:', withCounting);
+    
+    setPhase("hold-full");
+    
+    if (!isMuted) {
+      playSound("holdYourBreath");
+      if (withCounting) {
+        scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
+        scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
+        scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
+        scheduleTimer(() => setCurrentCount(0), 3500);
+      }
+    }
+    
+    scheduleTimer(() => doExhale(withCounting), 4000);
+  };
+
+  const doExhale = (withCounting: boolean) => {
+    if (!isActiveRef.current) return;
+    console.log('EXHALE, counting:', withCounting);
+    
+    setPhase("exhale");
+    setScale(0.3);
+    
+    if (!isMuted) {
+      playSound("breatheOut");
+      if (withCounting) {
+        scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
+        scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
+        scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
+        scheduleTimer(() => setCurrentCount(0), 3500);
+      }
+    }
+    
+    scheduleTimer(() => doHoldEmpty(withCounting), 4000);
+  };
+
+  const doHoldEmpty = (withCounting: boolean) => {
+    if (!isActiveRef.current) return;
+    console.log('HOLD EMPTY, counting:', withCounting);
+    
+    setPhase("hold-empty");
+    
+    if (!isMuted) {
+      playSound("hold");
+      if (withCounting) {
+        scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
+        scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
+        scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
+        scheduleTimer(() => setCurrentCount(0), 3500);
+      }
+    }
+    
+    scheduleTimer(() => {
+      if (!isActiveRef.current) return;
+      
+      cycleNumberRef.current++;
+      setCycleCount(cycleNumberRef.current);
+      console.log('Cycle completed:', cycleNumberRef.current);
+      
+      trackEvent('cycle_completed', {
+        event_category: 'progress',
+        event_label: 'cycle_complete',
+        cycle_number: cycleNumberRef.current
+      });
+      
+      // Cycles 1-2 have counting, 3+ don't
+      const nextWithCounting = cycleNumberRef.current < 2;
+      doInhale(nextWithCounting);
+    }, 4000);
+  };
+
+  // START SEQUENCE - Uses callbacks for waiting
+  const startBreathing = () => {
+    console.log('Starting breathing cycles');
+    setStage("breathing");
+    cycleNumberRef.current = 0;
+    setCycleCount(0);
+    doInhale(true); // Start with counting
+  };
+
+  const startWithWelcome = () => {
+    console.log('Playing welcome');
+    setStage("welcome");
+    setPhase("welcome");
+    setScale(0.6);
+    
+    playAndWait("welcomeMessage", () => {
+      if (!isActiveRef.current) return;
+      console.log('Welcome done, waiting 1 sec');
+      
+      scheduleTimer(() => {
+        if (!isActiveRef.current) return;
+        console.log('Playing explanation');
+        setStage("intro");
+        setPhase("intro");
+        setScale(0.5);
+        
+        playAndWait("boxBreathingExplanation", () => {
+          if (!isActiveRef.current) return;
+          console.log('Explanation done, waiting 1.5 sec');
+          setHasPlayedWelcome(true);
+          
+          scheduleTimer(() => {
+            if (!isActiveRef.current) return;
+            startBreathing();
+          }, 1500);
+        });
+      }, 1000);
+    });
+  };
+
+  const handleStart = () => {
+    console.log('START BUTTON CLICKED');
+    
+    // Initialize audio context for mobile
+    initAudioContext();
+    
+    isActiveRef.current = true;
+    sessionStartTimeRef.current = Date.now();
+    
+    trackEvent('breathing_started', {
+      event_category: 'engagement',
+      event_label: 'session_start'
+    });
+    
+    if (!hasPlayedWelcome) {
+      startWithWelcome();
+    } else {
+      startBreathing();
+    }
   };
 
   const handleStop = () => {
-    console.log('Stopping session');
+    console.log('STOP BUTTON CLICKED');
     isActiveRef.current = false;
-    clearAllTimeouts();
+    clearAllTimers();
     stopAllAudio();
 
-    // Track session end
     if (sessionStartTimeRef.current) {
       const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
       trackEvent('breathing_stopped', {
@@ -72,255 +212,6 @@ const Index = () => {
     setCurrentCount(0);
   };
 
-  async function playCount(key: "one" | "two" | "three" | "four", value: number) {
-    if (!isActiveRef.current) return;
-    await sleep(1000);
-    if (!isActiveRef.current) return;
-    setCurrentCount(value);
-    console.log(`Playing count ${value}`);
-    await playAudio(key);
-    setCurrentCount(0);
-  }
-
-  async function runGuidedCycle(cycleNumber: number) {
-    if (!isActiveRef.current) return;
-    console.log(`Starting cycle ${cycleNumber} with counting`);
-
-    // INHALE
-    setPhase("inhale");
-    setScale(1.0);
-    if (!isMuted) {
-      playAudioNonBlocking("breatheIn");
-      scheduleTimeout(() => {
-        setCurrentCount(2);
-        playAudioNonBlocking("two");
-      }, 1000);
-      scheduleTimeout(() => {
-        setCurrentCount(3);
-        playAudioNonBlocking("three");
-      }, 2000);
-      scheduleTimeout(() => {
-        setCurrentCount(4);
-        playAudioNonBlocking("four");
-      }, 3000);
-      scheduleTimeout(() => setCurrentCount(0), 3100);
-    }
-    await sleep(4000);
-    if (!isActiveRef.current) return;
-
-    // HOLD FULL
-    setPhase("hold-full");
-    if (!isMuted) {
-      playAudioNonBlocking("holdYourBreath");
-      scheduleTimeout(() => {
-        setCurrentCount(2);
-        playAudioNonBlocking("two");
-      }, 1000);
-      scheduleTimeout(() => {
-        setCurrentCount(3);
-        playAudioNonBlocking("three");
-      }, 2000);
-      scheduleTimeout(() => {
-        setCurrentCount(4);
-        playAudioNonBlocking("four");
-      }, 3000);
-      scheduleTimeout(() => setCurrentCount(0), 3100);
-    }
-    await sleep(4000);
-    if (!isActiveRef.current) return;
-
-    // EXHALE
-    setPhase("exhale");
-    setScale(0.3);
-    if (!isMuted) {
-      playAudioNonBlocking("breatheOut");
-      scheduleTimeout(() => {
-        setCurrentCount(2);
-        playAudioNonBlocking("two");
-      }, 1000);
-      scheduleTimeout(() => {
-        setCurrentCount(3);
-        playAudioNonBlocking("three");
-      }, 2000);
-      scheduleTimeout(() => {
-        setCurrentCount(4);
-        playAudioNonBlocking("four");
-      }, 3000);
-      scheduleTimeout(() => setCurrentCount(0), 3100);
-    }
-    await sleep(4000);
-    if (!isActiveRef.current) return;
-
-    // HOLD EMPTY
-    setPhase("hold-empty");
-    if (!isMuted) {
-      playAudioNonBlocking("hold");
-      scheduleTimeout(() => {
-        setCurrentCount(2);
-        playAudioNonBlocking("two");
-      }, 1000);
-      scheduleTimeout(() => {
-        setCurrentCount(3);
-        playAudioNonBlocking("three");
-      }, 2000);
-      scheduleTimeout(() => {
-        setCurrentCount(4);
-        playAudioNonBlocking("four");
-      }, 3000);
-      scheduleTimeout(() => setCurrentCount(0), 3100);
-    }
-    await sleep(4000);
-    if (!isActiveRef.current) return;
-
-    setCycleCount(cycleNumber);
-    console.log(`Completed cycle ${cycleNumber}`);
-    
-    // Track cycle completion
-    trackEvent('cycle_completed', {
-      event_category: 'progress',
-      event_label: 'cycle_complete',
-      cycle_number: cycleNumber
-    });
-    
-    await sleep(500);
-  }
-
-  async function runUnguidedCycle(cycleNumber: number) {
-    if (!isActiveRef.current) return;
-    console.log(`Starting cycle ${cycleNumber} without counting`);
-
-    // INHALE
-    setPhase("inhale");
-    setScale(1.0);
-    if (!isMuted) {
-      playAudioNonBlocking("breatheIn");
-    }
-    await sleep(4000);
-    if (!isActiveRef.current) return;
-
-    // HOLD FULL
-    setPhase("hold-full");
-    if (!isMuted) {
-      playAudioNonBlocking("holdYourBreath");
-    }
-    await sleep(4000);
-    if (!isActiveRef.current) return;
-
-    // EXHALE
-    setPhase("exhale");
-    setScale(0.3);
-    if (!isMuted) {
-      playAudioNonBlocking("breatheOut");
-    }
-    await sleep(4000);
-    if (!isActiveRef.current) return;
-
-    // HOLD EMPTY
-    setPhase("hold-empty");
-    if (!isMuted) {
-      playAudioNonBlocking("hold");
-    }
-    await sleep(4000);
-    if (!isActiveRef.current) return;
-
-    setCycleCount(cycleNumber);
-    console.log(`Completed cycle ${cycleNumber}`);
-    
-    // Track cycle completion
-    trackEvent('cycle_completed', {
-      event_category: 'progress',
-      event_label: 'cycle_complete',
-      cycle_number: cycleNumber
-    });
-    
-    await sleep(500);
-  }
-
-  async function runBreathingSession(startWithWelcome: boolean) {
-    if (!isActiveRef.current) return;
-
-    if (startWithWelcome && !hasPlayedWelcome) {
-      console.log('Playing WelcomeMessage');
-      setStage("welcome");
-      setPhase("welcome");
-      setScale(0.6);
-      await playAudio("welcomeMessage");
-      if (!isActiveRef.current) return;
-      console.log('WelcomeMessage finished');
-      await sleep(1000);
-
-      console.log('Playing BoxBreathingExplanation');
-      setStage("intro");
-      setPhase("intro");
-      setScale(0.5);
-      await playAudio("boxBreathingExplanation");
-      if (!isActiveRef.current) return;
-      console.log('BoxBreathingExplanation finished');
-      await sleep(1500);
-
-      setHasPlayedWelcome(true);
-      setStage("breathing");
-
-      // Cycles 1 and 2 with counting (the two guided cycles)
-      await runGuidedCycle(1);
-      if (!isActiveRef.current) return;
-      await runGuidedCycle(2);
-      if (!isActiveRef.current) return;
-
-      // Cycles 3+ without counting
-      let cycle = 3;
-      while (isActiveRef.current) {
-        await runUnguidedCycle(cycle);
-        if (!isActiveRef.current) return;
-        cycle += 1;
-      }
-    } else {
-      setStage("breathing");
-      setScale(0.3);
-
-      // First two cycles with counting (restart scenario)
-      await runGuidedCycle(1);
-      if (!isActiveRef.current) return;
-      await runGuidedCycle(2);
-      if (!isActiveRef.current) return;
-
-      // Remaining cycles without counting
-      let cycle = 3;
-      while (isActiveRef.current) {
-        await runUnguidedCycle(cycle);
-        if (!isActiveRef.current) return;
-        cycle += 1;
-      }
-    }
-  }
-
-  const handleStart = async () => {
-    if (isLoading || loadError) return;
-
-    console.log('START BUTTON CLICKED');
-    
-    // Initialize audio context for mobile (must be on user gesture)
-    await initAudioContext();
-    
-    // Small delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    isActiveRef.current = true;
-    sessionStartTimeRef.current = Date.now();
-
-    // Track session start
-    trackEvent('breathing_started', {
-      event_category: 'engagement',
-      event_label: 'session_start'
-    });
-
-    if (!hasPlayedWelcome) {
-      runBreathingSession(true);
-    } else {
-      runBreathingSession(false);
-    }
-  };
-
   const handleCompletionClose = () => {
     setShowCompletion(false);
     setCycleCount(0);
@@ -334,7 +225,6 @@ const Index = () => {
   };
 
   const handleTap = () => {
-    // Track circle interaction
     trackEvent('circle_clicked', {
       event_category: 'interaction',
       event_label: 'breathing_circle',
@@ -351,7 +241,7 @@ const Index = () => {
   useEffect(() => {
     return () => {
       isActiveRef.current = false;
-      clearAllTimeouts();
+      clearAllTimers();
       stopAllAudio();
     };
   }, []);
@@ -363,7 +253,6 @@ const Index = () => {
         e.preventDefault();
         e.stopPropagation();
         
-        // Track keyboard shortcut
         trackEvent('keyboard_shortcut', {
           event_category: 'interaction',
           event_label: 'spacebar',
@@ -374,7 +263,6 @@ const Index = () => {
       }
       
       if (e.code === 'Escape' && stage !== "idle") {
-        // Track escape key
         trackEvent('keyboard_shortcut', {
           event_category: 'interaction',
           event_label: 'escape',
@@ -389,23 +277,12 @@ const Index = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [stage]);
 
-  if (loadError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <p className="text-destructive text-lg">{loadError}</p>
-          <Button onClick={() => window.location.reload()}>Retry</Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden">
       {/* Vignette overlay */}
       <div className="vignette" />
       
-      {/* Golden sparkles - outside the card */}
+      {/* Golden sparkles */}
       {Array.from({ length: 40 }).map((_, i) => (
         <div
           key={`sparkle-${i}`}
@@ -424,7 +301,7 @@ const Index = () => {
         />
       ))}
       
-      {/* Enhanced floating particles with varied animations */}
+      {/* Floating particles */}
       {Array.from({ length: 25 }).map((_, i) => {
         const isLarge = i % 5 === 0;
         const size = isLarge ? Math.random() * 6 + 4 : Math.random() * 4 + 2;
@@ -449,7 +326,7 @@ const Index = () => {
         );
       })}
 
-      {/* Enhanced background glow orbs with varied sizes and movements */}
+      {/* Background glow orbs */}
       <div 
         className="absolute w-[280px] h-[280px] rounded-full blur-[120px] opacity-[0.12] bg-primary pointer-events-none"
         style={{
@@ -487,7 +364,7 @@ const Index = () => {
         }}
       />
       
-      {/* Glassmorphism card - Portrait layout, responsive */}
+      {/* Glassmorphism card */}
       <div className="glassmorphism-card relative z-10 w-[90vw] md:w-[440px] lg:w-[480px] min-h-[600px] md:min-h-[640px] p-8 md:p-10 lg:p-12 box-border flex flex-col">
         {/* Mute Toggle */}
         <button
@@ -557,18 +434,12 @@ const Index = () => {
           {/* Start/Stop Button */}
           <button
             onClick={stage === "idle" ? handleStart : handleStop}
-            disabled={isLoading}
-            className="glassmorphism-button px-12 py-4 rounded-full font-light text-base tracking-[2px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 relative overflow-hidden group/btn"
+            className="glassmorphism-button px-12 py-4 rounded-full font-light text-base tracking-[2px] flex items-center gap-3 relative overflow-hidden group/btn"
             style={{
               textShadow: '0 1px 8px rgba(0, 0, 0, 0.2)',
             }}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Loading...</span>
-              </>
-            ) : stage === "idle" ? (
+            {stage === "idle" ? (
               <>
                 <Play className="h-5 w-5 fill-current transition-transform duration-300 group-hover/btn:scale-110" />
                 <span>Start</span>
@@ -581,7 +452,7 @@ const Index = () => {
             )}
           </button>
           
-          {/* Keyboard shortcut hint - desktop only */}
+          {/* Keyboard shortcut hint */}
           <div className="hidden md:block mt-2">
             <div className="keyboard-badge text-foreground/75 flex items-center gap-2.5 transition-all duration-500 hover:text-foreground/95">
               <Command className="h-3.5 w-3.5" />
