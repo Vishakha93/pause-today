@@ -8,7 +8,7 @@ type BreathingPhase = "welcome" | "intro" | "inhale" | "hold-full" | "exhale" | 
 type Stage = "idle" | "welcome" | "intro" | "breathing";
 
 const Index = () => {
-  const { playSound, playAndWait, stopAllAudio, initAudioContext, scheduleTimer, clearAllTimers } = useAudioManager();
+  const { playSound, playAndWait, stopAllAudio, initAudioContext, scheduleTimer, clearAllTimers, setMuted } = useAudioManager();
   const [stage, setStage] = useState<Stage>("idle");
   const [phase, setPhase] = useState<BreathingPhase>("inhale");
   const [cycleCount, setCycleCount] = useState(0);
@@ -37,14 +37,12 @@ const Index = () => {
     setPhase("inhale");
     setScale(1.0);
     
-    if (!isMuted) {
-      playSound("breatheIn");
-      if (withCounting) {
-        scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
-        scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
-        scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
-        scheduleTimer(() => setCurrentCount(0), 3500);
-      }
+    playSound("breatheIn");
+    if (withCounting) {
+      scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
+      scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
+      scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
+      scheduleTimer(() => setCurrentCount(0), 3500);
     }
     
     scheduleTimer(() => doHoldFull(withCounting), 4000);
@@ -56,14 +54,12 @@ const Index = () => {
     
     setPhase("hold-full");
     
-    if (!isMuted) {
-      playSound("holdYourBreath");
-      if (withCounting) {
-        scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
-        scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
-        scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
-        scheduleTimer(() => setCurrentCount(0), 3500);
-      }
+    playSound("holdYourBreath");
+    if (withCounting) {
+      scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
+      scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
+      scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
+      scheduleTimer(() => setCurrentCount(0), 3500);
     }
     
     scheduleTimer(() => doExhale(withCounting), 4000);
@@ -76,14 +72,12 @@ const Index = () => {
     setPhase("exhale");
     setScale(0.3);
     
-    if (!isMuted) {
-      playSound("breatheOut");
-      if (withCounting) {
-        scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
-        scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
-        scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
-        scheduleTimer(() => setCurrentCount(0), 3500);
-      }
+    playSound("breatheOut");
+    if (withCounting) {
+      scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
+      scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
+      scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
+      scheduleTimer(() => setCurrentCount(0), 3500);
     }
     
     scheduleTimer(() => doHoldEmpty(withCounting), 4000);
@@ -95,14 +89,12 @@ const Index = () => {
     
     setPhase("hold-empty");
     
-    if (!isMuted) {
-      playSound("hold");
-      if (withCounting) {
-        scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
-        scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
-        scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
-        scheduleTimer(() => setCurrentCount(0), 3500);
-      }
+    playSound("hold");
+    if (withCounting) {
+      scheduleTimer(() => { setCurrentCount(2); playSound("two"); }, 1000);
+      scheduleTimer(() => { setCurrentCount(3); playSound("three"); }, 2000);
+      scheduleTimer(() => { setCurrentCount(4); playSound("four"); }, 3000);
+      scheduleTimer(() => setCurrentCount(0), 3500);
     }
     
     scheduleTimer(() => {
@@ -218,8 +210,10 @@ const Index = () => {
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
-    if (!isMuted) {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    setMuted(newMuted);
+    if (newMuted) {
       stopAllAudio();
     }
   };

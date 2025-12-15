@@ -17,9 +17,17 @@ const FILE_MAP: Record<string, string> = {
 export const useAudioManager = () => {
   const timersRef = useRef<number[]>([]);
   const activeAudiosRef = useRef<HTMLAudioElement[]>([]);
+  const isMutedRef = useRef(false);
+
+  // Set muted state
+  const setMuted = useCallback((muted: boolean): void => {
+    isMutedRef.current = muted;
+  }, []);
 
   // Simple fire-and-forget audio (for breathing instructions/counts)
   const playSound = useCallback((audioKey: string): void => {
+    if (isMutedRef.current) return; // Skip if muted
+    
     const filename = FILE_MAP[audioKey];
     if (!filename) {
       console.log('Unknown audio key:', audioKey);
@@ -146,5 +154,6 @@ export const useAudioManager = () => {
     initAudioContext,
     scheduleTimer,
     clearAllTimers,
+    setMuted,
   };
 };
